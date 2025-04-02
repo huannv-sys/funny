@@ -318,7 +318,7 @@ export default function HomePage() {
           </Dialog>
         </div>
 
-        <Tabs defaultValue="dashboard" className="space-y-6">
+        <Tabs defaultValue="devices" className="space-y-6">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
             <TabsTrigger value="devices">Danh sách thiết bị</TabsTrigger>

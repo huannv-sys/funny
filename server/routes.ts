@@ -339,24 +339,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Dashboard summary endpoint for all devices
   app.get('/api/dashboards', async (req, res) => {
     try {
+      console.log("Fetching dashboards for all devices...");
       const devices = await mikrotikStorage.getDevices();
+      console.log(`Found ${devices.length} devices:`, devices.map(d => ({ id: d.id, name: d.name })));
+      
       const dashboards = await Promise.all(devices.map(async (device) => {
         try {
-          // Skip devices that are not connected or unavailable
-          if (!device.lastConnected) {
-            return {
-              deviceId: device.id,
-              deviceName: device.name,
-              cpuUsage: 0,
-              memoryUsage: 0,
-              diskUsage: 0,
-              uptime: 'Offline',
-              interfacesUp: 0,
-              interfacesDown: 0,
-              activeConnections: 0,
-              alertsCount: 0
-            };
-          }
+          // Create dashboard summary for all devices, even if offline
+          const isOffline = !device.lastConnected;
 
           // Connect to device
           const conn = await createConnection(device);
