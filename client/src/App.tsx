@@ -16,6 +16,7 @@ const VPNPage = lazy(() => import("./pages/VPNPage"));
 const QoSPage = lazy(() => import("./pages/QoSPage"));
 const ServicesPage = lazy(() => import("./pages/ServicesPage"));
 const HomePage = lazy(() => import("./pages/HomePage"));
+const AlertDetailPage = lazy(() => import("./pages/AlertDetailPage"));
 
 function LoadingFallback() {
   return (
@@ -47,6 +48,9 @@ function Router() {
         {/* Trang Quản lý hệ thống */}
         <Route path="/qos" component={QoSPage} />
         <Route path="/services" component={ServicesPage} />
+
+        {/* Trang Cảnh báo */}
+        <Route path="/alerts/:id" component={AlertDetailPage} />
         
         {/* Trang lỗi 404 */}
         <Route component={NotFound} />

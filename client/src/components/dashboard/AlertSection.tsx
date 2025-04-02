@@ -6,6 +6,7 @@ import { InfoIcon, AlertTriangleIcon, AlertCircleIcon, CheckCircleIcon } from "l
 import { apiRequest } from "@/lib/queryClient";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { Link } from "wouter";
 
 export default function AlertSection() {
   const { alerts, markAllAlertsAsRead } = useContext(AlertsContext);
@@ -73,40 +74,48 @@ export default function AlertSection() {
 
   const handleDismissAlert = async (alertId: number) => {
     try {
-      await apiRequest("PATCH", `/api/alerts/${alertId}`, { read: true });
-      queryClient.invalidateQueries({ queryKey: ['/api/alerts'] });
-      toast({
-        title: "Success",
-        description: "Alert dismissed",
+      const res = await fetch(`/api/alerts/${alertId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ read: true }),
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
+      
+      if (res.ok) {
+        queryClient.invalidateQueries({ queryKey: ['/api/alerts'] });
+        toast({
+          title: "Thành công",
+          description: "Đã đánh dấu cảnh báo là đã đọc",
+        });
+      } else {
+        throw new Error("Không thể cập nhật trạng thái cảnh báo");
+      }
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to dismiss alert",
+        title: "Lỗi",
+        description: "Có lỗi xảy ra khi cập nhật trạng thái cảnh báo",
         variant: "destructive",
       });
     }
   };
 
+  // Use Link component instead of direct navigation
   const handleViewDetails = (alertId: number) => {
-    // This would typically open a modal with alert details
-    toast({
-      title: "Alert Details",
-      description: `Viewing details for alert ${alertId}`,
-    });
+    // No longer used as we're using Link component now
   };
 
   return (
     <div id="alerts" className="mt-8">
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">System Alerts</h3>
+        <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">Cảnh báo hệ thống</h3>
         <Button 
           variant="destructive"
           onClick={handleMarkAllAsRead}
           disabled={alerts.length === 0 || alerts.every(alert => alert.read)}
         >
           <CheckCircleIcon className="h-4 w-4 mr-2" />
-          Mark All as Read
+          Đánh dấu tất cả đã đọc
         </Button>
       </div>
       
@@ -130,15 +139,17 @@ export default function AlertSection() {
                           <span className="text-xs text-gray-500 dark:text-gray-400">{formatRelativeTime(alert.timestamp)}</span>
                         </div>
                         <div className="mt-1 text-sm text-gray-600 dark:text-gray-300">
-                          {alert.description || "No additional details provided."}
+                          {alert.description || "Không có thông tin chi tiết bổ sung."}
                         </div>
                         <div className="mt-2">
                           <Button 
                             variant="outline" 
                             size="sm"
-                            onClick={() => handleViewDetails(alert.id)}
+                            asChild
                           >
-                            View Details
+                            <Link href={`/alerts/${alert.id}`}>
+                              Xem chi tiết
+                            </Link>
                           </Button>
                           {!alert.read && (
                             <Button 
@@ -147,7 +158,7 @@ export default function AlertSection() {
                               className="ml-2"
                               onClick={() => handleDismissAlert(alert.id)}
                             >
-                              Dismiss
+                              Bỏ qua
                             </Button>
                           )}
                         </div>
@@ -158,7 +169,7 @@ export default function AlertSection() {
               ) : (
                 <li className="py-8 text-center">
                   <CheckCircleIcon className="h-12 w-12 mx-auto text-green-500 mb-3" />
-                  <p className="text-gray-500 dark:text-gray-400">No alerts at this time</p>
+                  <p className="text-gray-500 dark:text-gray-400">Không có cảnh báo nào vào lúc này</p>
                 </li>
               )}
             </ul>
