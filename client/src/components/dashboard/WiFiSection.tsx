@@ -116,7 +116,7 @@ export default function WiFiSection() {
                   <SelectItem value="all">All WiFi Interfaces</SelectItem>
                   {interfaces.filter(iface => iface.type === 'wifi').map(iface => (
                     <SelectItem key={iface.name} value={iface.name || "placeholder-value"}>
-                      {iface.name} ({iface.comment || ''})
+                      {iface.name || "Unnamed Interface"} ({iface.comment || ''})
                     </SelectItem>
                   ))}
                 </SelectContent>

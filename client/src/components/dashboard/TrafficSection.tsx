@@ -194,7 +194,7 @@ export default function TrafficSection() {
               <SelectContent>
                 <SelectItem value="all">All Interfaces</SelectItem>
                 {interfaces.map(iface => (
-                  <SelectItem key={iface.name} value={iface.name}>
+                  <SelectItem key={iface.name} value={iface.name || "interface-placeholder"}>
                     {iface.name} ({iface.comment || iface.type})
                   </SelectItem>
                 ))}

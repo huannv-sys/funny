@@ -45,7 +45,7 @@ export default function LogsSection() {
   // Handler for topic filter change
   const handleTopicFilterChange = (value: string) => {
     setTopicFilter(value);
-    if (value) {
+    if (value && value !== "all-topics") {
       filterLogs(value);
     } else {
       getLogs();
@@ -118,10 +118,10 @@ export default function LogsSection() {
               <SelectValue placeholder="Lọc theo chủ đề" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Tất cả chủ đề</SelectItem>
+              <SelectItem value="all-topics">Tất cả chủ đề</SelectItem>
               {getUniqueTopics().map(topic => (
-                <SelectItem key={topic} value={topic}>
-                  {topic}
+                <SelectItem key={topic} value={topic || "topic-placeholder"}>
+                  {topic || "Unknown Topic"}
                 </SelectItem>
               ))}
             </SelectContent>
