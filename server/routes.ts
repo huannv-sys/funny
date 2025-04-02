@@ -39,42 +39,30 @@ function getEnvMikrotikDevice(): Device | null {
   };
 }
 
-// Custom storage interface extension (could be moved to storage.ts)
-interface IMikrotikStorage {
-  getDevices(): Promise<Device[]>;
-  getDevice(id: number): Promise<Device | undefined>;
-  createDevice(device: any): Promise<Device>;
-  updateDevice(id: number, data: Partial<Device>): Promise<Device | undefined>;
-  deleteDevice(id: number): Promise<boolean>;
-  getAlerts(deviceId?: number): Promise<Alert[]>;
-  createAlert(alert: any): Promise<Alert>;
-  updateAlert(id: number, data: Partial<Alert>): Promise<Alert | undefined>;
-  markAllAlertsAsRead(deviceId: number): Promise<void>;
-}
-
-// Extend the storage interface
-class MikrotikStorage implements IMikrotikStorage {
-  private devices: Map<number, Device>;
-  private alerts: Map<number, Alert>;
-  private currentDeviceId: number;
-  private currentAlertId: number;
-
-  constructor() {
-    this.devices = new Map();
-    this.alerts = new Map();
-    this.currentDeviceId = 1;
-    this.currentAlertId = 1;
-
+// Function to initialize the default MikroTik device if needed
+async function initializeDefaultDevice() {
+  const devices = await storage.getDevices();
+  
+  // If we have no devices yet, create a default one
+  if (devices.length === 0) {
     // Check for environment variables for real device
     const envDevice = getEnvMikrotikDevice();
     
     if (envDevice) {
       console.log("Using MikroTik device from environment variables");
-      this.createDevice(envDevice);
+      await storage.createDevice({
+        name: envDevice.name,
+        ipAddress: envDevice.ipAddress,
+        username: envDevice.username,
+        password: envDevice.password,
+        port: envDevice.port,
+        model: envDevice.model,
+        version: envDevice.version
+      });
     } else {
       // Fall back to mock device if environment variables not provided
       console.log("Using mock MikroTik device");
-      this.createDevice({
+      await storage.createDevice({
         name: "MikroTik Router 1",
         ipAddress: "192.168.88.1",
         username: "admin",
@@ -85,82 +73,13 @@ class MikrotikStorage implements IMikrotikStorage {
       });
     }
   }
-
-  async getDevices(): Promise<Device[]> {
-    return Array.from(this.devices.values());
-  }
-
-  async getDevice(id: number): Promise<Device | undefined> {
-    return this.devices.get(id);
-  }
-
-  async createDevice(device: any): Promise<Device> {
-    const id = this.currentDeviceId++;
-    const newDevice: Device = {
-      id,
-      ...device,
-      lastConnected: new Date().toISOString(),
-    };
-    this.devices.set(id, newDevice);
-    return newDevice;
-  }
-
-  async updateDevice(id: number, data: Partial<Device>): Promise<Device | undefined> {
-    const device = this.devices.get(id);
-    if (!device) return undefined;
-
-    const updatedDevice = { ...device, ...data };
-    this.devices.set(id, updatedDevice);
-    return updatedDevice;
-  }
-
-  async deleteDevice(id: number): Promise<boolean> {
-    return this.devices.delete(id);
-  }
-
-  async getAlerts(deviceId?: number): Promise<Alert[]> {
-    const allAlerts = Array.from(this.alerts.values());
-    if (deviceId !== undefined) {
-      return allAlerts.filter(alert => alert.deviceId === deviceId);
-    }
-    return allAlerts;
-  }
-
-  async createAlert(alert: any): Promise<Alert> {
-    const id = this.currentAlertId++;
-    const newAlert: Alert = {
-      id,
-      ...alert,
-      timestamp: new Date().toISOString(),
-      read: false,
-    };
-    this.alerts.set(id, newAlert);
-    return newAlert;
-  }
-
-  async updateAlert(id: number, data: Partial<Alert>): Promise<Alert | undefined> {
-    const alert = this.alerts.get(id);
-    if (!alert) return undefined;
-
-    const updatedAlert = { ...alert, ...data };
-    this.alerts.set(id, updatedAlert);
-    return updatedAlert;
-  }
-
-  async markAllAlertsAsRead(deviceId: number): Promise<void> {
-    for (const [id, alert] of this.alerts.entries()) {
-      if (alert.deviceId === deviceId) {
-        this.alerts.set(id, { ...alert, read: true });
-      }
-    }
-  }
 }
-
-// Create our MikroTik storage instance
-const mikrotikStorage = new MikrotikStorage();
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
+  
+  // Initialize default device if needed
+  await initializeDefaultDevice();
 
   // Setup WebSocket server for real-time updates
   const wss = new WebSocketServer({ 
@@ -276,12 +195,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (error) {
         console.error(`Error monitoring device ${device.id}:`, error);
         // Create an alert for connection failure
-        const alert = await mikrotikStorage.createAlert({
+        const alert = await storage.createAlert({
           deviceId: device.id,
           type: 'connection',
           severity: 'critical',
           message: 'Connection Lost',
-          description: `Failed to connect to device: ${(error as Error).message}`,
+          data: { description: `Failed to connect to device: ${(error as Error).message}` },
         });
         broadcast({ type: 'newAlert', deviceId: device.id, data: alert });
       }
@@ -310,28 +229,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   ): Promise<void> {
     // CPU temperature alert
     if (systemInfo.temperature > 65) {
-      const alert = await mikrotikStorage.createAlert({
+      const alert = await storage.createAlert({
         deviceId,
         type: 'temperature',
         severity: 'warning',
         message: 'CPU Temperature Warning',
-        description: `CPU temperature has exceeded the warning threshold (${systemInfo.temperature}°C). Please check ventilation.`,
-        data: { temperature: systemInfo.temperature },
+        data: { 
+          temperature: systemInfo.temperature,
+          description: `CPU temperature has exceeded the warning threshold (${systemInfo.temperature}°C). Please check ventilation.`
+        },
       });
-      broadcast({ type: 'newAlert', data: alert });
+      broadcast({ type: 'newAlert', deviceId, data: alert });
     }
 
     // Memory usage alert
     if (systemInfo.memoryUsedPercent > 85) {
-      const alert = await mikrotikStorage.createAlert({
+      const alert = await storage.createAlert({
         deviceId,
         type: 'memory',
         severity: 'warning',
         message: 'High Memory Usage',
-        description: `Memory usage is high (${systemInfo.memoryUsedPercent}%). Consider restarting the device if performance is affected.`,
-        data: { memoryUsed: systemInfo.memoryUsedPercent },
+        data: { 
+          memoryUsed: systemInfo.memoryUsedPercent,
+          description: `Memory usage is high (${systemInfo.memoryUsedPercent}%). Consider restarting the device if performance is affected.`
+        },
       });
-      broadcast({ type: 'newAlert', data: alert });
+      broadcast({ type: 'newAlert', deviceId, data: alert });
     }
 
     // High bandwidth usage alert (simplified example)
@@ -342,15 +265,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (rxMbps > 90 || txMbps > 90) { // 90 Mbps threshold example
         highTrafficDetected = true;
-        const alert = await mikrotikStorage.createAlert({
+        const alert = await storage.createAlert({
           deviceId,
           type: 'traffic',
           severity: 'info',
           message: 'High Bandwidth Usage',
-          description: `Interface ${ifaceName} is experiencing high traffic (RX: ${rxMbps.toFixed(2)} Mbps, TX: ${txMbps.toFixed(2)} Mbps).`,
-          data: { interface: ifaceName, rxMbps, txMbps },
+          data: { 
+            interface: ifaceName, 
+            rxMbps, 
+            txMbps,
+            description: `Interface ${ifaceName} is experiencing high traffic (RX: ${rxMbps.toFixed(2)} Mbps, TX: ${txMbps.toFixed(2)} Mbps).`
+          },
         });
-        broadcast({ type: 'newAlert', data: alert });
+        broadcast({ type: 'newAlert', deviceId, data: alert });
       }
     }
   }
@@ -365,10 +292,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/dashboards', async (req, res) => {
     try {
       console.log("Fetching dashboards for all devices...");
-      const devices = await mikrotikStorage.getDevices();
-      console.log(`Found ${devices.length} devices:`, devices.map(d => ({ id: d.id, name: d.name })));
+      const devices = await storage.getDevices();
+      console.log(`Found ${devices.length} devices:`, devices.map((d: Device) => ({ id: d.id, name: d.name })));
       
-      const dashboards = await Promise.all(devices.map(async (device) => {
+      const dashboards = await Promise.all(devices.map(async (device: Device) => {
         try {
           // Create dashboard summary for all devices, even if offline
           const isOffline = !device.lastConnected;
@@ -383,8 +310,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const interfaces = await getInterfaces(conn);
           
           // Get alerts for this device
-          const alerts = await mikrotikStorage.getAlerts(device.id);
-          const unreadAlerts = alerts.filter(alert => !alert.read);
+          const alerts = await storage.getAlerts(device.id);
+          const unreadAlerts = alerts.filter((alert: Alert) => !alert.read);
           
           // Calculate interface status
           const interfacesUp = interfaces.filter(iface => iface.running).length;
@@ -432,7 +359,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Device endpoints
   app.get('/api/devices', async (req, res) => {
     try {
-      const devices = await mikrotikStorage.getDevices();
+      const devices = await storage.getDevices();
       res.json(devices);
     } catch (error) {
       res.status(500).json({ error: 'Failed to fetch devices' });
@@ -442,7 +369,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/devices/:id', async (req, res) => {
     try {
       const deviceId = parseInt(req.params.id);
-      const device = await mikrotikStorage.getDevice(deviceId);
+      const device = await storage.getDevice(deviceId);
       
       if (!device) {
         return res.status(404).json({ error: 'Device not found' });
@@ -470,7 +397,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Invalid device data', details: result.error });
       }
       
-      const device = await mikrotikStorage.createDevice(result.data);
+      const device = await storage.createDevice(result.data);
       
       // Start monitoring the device
       startMonitoringDevice(device);
@@ -498,7 +425,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Invalid device data', details: result.error });
       }
       
-      const updatedDevice = await mikrotikStorage.updateDevice(deviceId, result.data);
+      const updatedDevice = await storage.updateDevice(deviceId, result.data);
       
       if (!updatedDevice) {
         return res.status(404).json({ error: 'Device not found' });
@@ -520,7 +447,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Stop monitoring the device
       stopMonitoringDevice(deviceId);
       
-      const success = await mikrotikStorage.deleteDevice(deviceId);
+      const success = await storage.deleteDevice(deviceId);
       
       if (!success) {
         return res.status(404).json({ error: 'Device not found' });
@@ -536,7 +463,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/devices/:id/interfaces', async (req, res) => {
     try {
       const deviceId = parseInt(req.params.id);
-      const device = await mikrotikStorage.getDevice(deviceId);
+      const device = await storage.getDevice(deviceId);
       
       if (!device) {
         return res.status(404).json({ error: 'Device not found' });
@@ -1001,7 +928,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Start monitoring existing devices
   const startAllDeviceMonitoring = async () => {
-    const devices = await mikrotikStorage.getDevices();
+    const devices = await storage.getDevices();
     for (const device of devices) {
       startMonitoringDevice(device);
     }
