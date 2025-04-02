@@ -441,9 +441,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/devices', async (req, res) => {
     try {
+      console.log("Received device data:", req.body);
+      
+      // Đảm bảo dữ liệu port là số
+      if (req.body.port && typeof req.body.port === 'string') {
+        req.body.port = parseInt(req.body.port);
+      }
+      
       const result = insertDeviceSchema.safeParse(req.body);
       
       if (!result.success) {
+        console.error("Schema validation failed:", result.error);
         return res.status(400).json({ error: 'Invalid device data', details: result.error });
       }
       

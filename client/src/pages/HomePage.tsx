@@ -77,13 +77,24 @@ export default function HomePage() {
   // Xử lý thêm thiết bị mới
   const handleAddDevice = async () => {
     try {
+      // Chuyển đổi port từ string sang number
+      const processedData = {
+        ...formValues,
+        port: parseInt(formValues.port),
+        // Sử dụng field model cho type
+        model: formValues.type,
+      };
+      
+      console.log("Sending device data:", processedData);
+      
       const response = await apiRequest(
         'POST',  // Method
         '/api/devices',  // URL
-        formValues  // Data
+        processedData  // Data đã xử lý
       );
       
       const newDevice = await response.json();
+      console.log("New device created:", newDevice);
       
       // Reset form và đóng dialog
       setFormValues({
@@ -102,6 +113,10 @@ export default function HomePage() {
       
     } catch (error) {
       console.error("Lỗi khi thêm thiết bị:", error);
+      // Hiển thị thêm chi tiết lỗi
+      if (error instanceof Error) {
+        alert(`Không thể thêm thiết bị: ${error.message}`);
+      }
     }
   };
 
