@@ -57,6 +57,7 @@ export default function DHCPPage() {
     queryFn: getQueryFn<DHCPServer[]>({ on401: 'throw' }),
     staleTime: 60000, // 1 minute
     refetchInterval: 120000, // 2 minutes
+    placeholderData: [],
   });
 
   // Fetch dữ liệu DHCP Leases
@@ -65,6 +66,7 @@ export default function DHCPPage() {
     queryFn: getQueryFn<DHCPLease[]>({ on401: 'throw' }),
     staleTime: 30000, // 30 seconds
     refetchInterval: 60000, // 1 minute
+    placeholderData: [],
   });
 
   // Fetch dữ liệu DHCP Clients
@@ -73,6 +75,7 @@ export default function DHCPPage() {
     queryFn: getQueryFn<DHCPClient[]>({ on401: 'throw' }),
     staleTime: 30000,
     refetchInterval: 60000,
+    placeholderData: [],
   });
 
   // Tạo loading fallback component
@@ -96,6 +99,8 @@ export default function DHCPPage() {
 
   // Tạo badge cho status
   function getStatusBadge(status: string) {
+    if (!status) return <Badge className="bg-gray-500">Không xác định</Badge>;
+    
     switch (status.toLowerCase()) {
       case 'bound':
         return <Badge className="bg-green-500">Đã gán</Badge>;
@@ -276,7 +281,7 @@ export default function DHCPPage() {
                                   {client.status}
                                 </Badge>
                               ) : (
-                                <Badge className="bg-gray-500">Unknown</Badge>
+                                <Badge className="bg-gray-500">Không xác định</Badge>
                               )}
                             </TableCell>
                             <TableCell>{client.address}</TableCell>

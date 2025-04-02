@@ -81,6 +81,7 @@ export default function FirewallPage() {
     queryFn: getQueryFn<FirewallRule[]>({ on401: 'throw' }),
     staleTime: 30000,
     refetchInterval: 60000,
+    placeholderData: [],
   });
 
   // Fetch dữ liệu NAT Rules
@@ -89,6 +90,7 @@ export default function FirewallPage() {
     queryFn: getQueryFn<NATRule[]>({ on401: 'throw' }),
     staleTime: 30000,
     refetchInterval: 60000,
+    placeholderData: [],
   });
 
   // Fetch dữ liệu Connections
@@ -97,6 +99,7 @@ export default function FirewallPage() {
     queryFn: getQueryFn<Connection[]>({ on401: 'throw' }),
     staleTime: 15000,
     refetchInterval: 30000,
+    placeholderData: [],
   });
 
   // Tạo loading fallback component
@@ -264,7 +267,7 @@ export default function FirewallPage() {
                             </TableCell>
                             <TableCell>{rule.connectionState || '-'}</TableCell>
                             <TableCell>
-                              {rule.packets.toLocaleString()} / {formatBytes(rule.bytes)}
+                              {(rule.packets !== undefined ? rule.packets.toLocaleString() : "0")} / {(rule.bytes !== undefined ? formatBytes(rule.bytes) : "0 B")}
                             </TableCell>
                             <TableCell>{rule.comment || '-'}</TableCell>
                           </TableRow>
@@ -331,7 +334,7 @@ export default function FirewallPage() {
                             <TableCell>{rule.toAddresses || '-'}</TableCell>
                             <TableCell>{rule.toPorts || '-'}</TableCell>
                             <TableCell>
-                              {rule.packets.toLocaleString()} / {formatBytes(rule.bytes)}
+                              {(rule.packets !== undefined ? rule.packets.toLocaleString() : "0")} / {(rule.bytes !== undefined ? formatBytes(rule.bytes) : "0 B")}
                             </TableCell>
                             <TableCell>{rule.comment || '-'}</TableCell>
                           </TableRow>
@@ -389,7 +392,7 @@ export default function FirewallPage() {
                             <TableCell>{getStateBadge(conn.state)}</TableCell>
                             <TableCell>{conn.timeout}s</TableCell>
                             <TableCell>
-                              {formatBytes(conn.bytesIn)} / {formatBytes(conn.bytesOut)}
+                              {(conn.bytesIn !== undefined ? formatBytes(conn.bytesIn) : "0 B")} / {(conn.bytesOut !== undefined ? formatBytes(conn.bytesOut) : "0 B")}
                             </TableCell>
                             <TableCell>
                               {conn.natted ? (
