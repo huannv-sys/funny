@@ -9,20 +9,35 @@ export default function DeviceSelector() {
     const selectedId = parseInt(value, 10);
     const device = devices.find(d => d.id === selectedId);
     if (device) {
+      console.log("Manually selecting device:", device.id, device.name);
       selectDevice(device);
+      
+      // Sau khi thay đổi thiết bị, đảm bảo refetch dữ liệu
+      setTimeout(() => {
+        console.log("Device selection changed, refreshing data...");
+      }, 100);
     }
   };
 
   // Auto-select the first device if none is selected
   useEffect(() => {
     if (devices.length > 0 && !selectedDevice) {
+      console.log("Auto-selecting first device:", devices[0].id, devices[0].name);
       selectDevice(devices[0]);
     }
   }, [devices, selectedDevice, selectDevice]);
 
   // Make sure we have a valid selection
   const hasValidDevices = devices.length > 0;
-  const currentValue = selectedDevice?.id.toString() || "1"; // Use "1" as a fallback
+  const currentValue = selectedDevice?.id.toString() || ""; // Empty string if no selection to force re-selection
+
+  // In ra trạng thái bộ chọn thiết bị để debug
+  console.log("DeviceSelector render:", { 
+    hasValidDevices, 
+    deviceCount: devices.length, 
+    selectedDeviceId: selectedDevice?.id,
+    currentValue 
+  });
 
   // If no devices are available, show a placeholder
   if (!hasValidDevices) {
@@ -47,7 +62,7 @@ export default function DeviceSelector() {
       </SelectTrigger>
       <SelectContent>
         {devices.map(device => (
-          <SelectItem key={device.id} value={device.id.toString() || "placeholder-value"}>
+          <SelectItem key={device.id} value={device.id.toString()}>
             {device.name} ({device.ipAddress})
           </SelectItem>
         ))}

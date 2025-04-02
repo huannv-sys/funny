@@ -226,8 +226,17 @@ export function DeviceProvider({ children }: { children: ReactNode }) {
     if (savedDeviceId && devices.length > 0) {
       const device = devices.find(d => d.id.toString() === savedDeviceId);
       if (device) {
-        setSelectedDevice(device);
+        console.log("Loading device from localStorage:", device.name, device.id);
+        selectDevice(device); // Sử dụng selectDevice để thiết lập thiết bị và trigger cập nhật dữ liệu
+      } else if (!selectedDevice && devices.length > 0) {
+        // Nếu không tìm thấy thiết bị đã lưu, chọn thiết bị đầu tiên
+        console.log("Saved device not found, selecting first device:", devices[0].name);
+        selectDevice(devices[0]);
       }
+    } else if (!selectedDevice && devices.length > 0) {
+      // Nếu không có thiết bị được lưu và chưa chọn thiết bị nào, chọn thiết bị đầu tiên
+      console.log("No saved device, auto-selecting first device:", devices[0].name);
+      selectDevice(devices[0]);
     }
     
     // Tải danh sách các thiết bị đã chọn để so sánh
@@ -243,7 +252,7 @@ export function DeviceProvider({ children }: { children: ReactNode }) {
         console.error('Failed to parse selected device IDs from localStorage');
       }
     }
-  }, [refreshDevices, devices]);
+  }, [refreshDevices, devices, selectedDevice, selectDevice]);
 
   return (
     <DeviceContext.Provider 
