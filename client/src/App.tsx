@@ -18,6 +18,7 @@ const ServicesPage = lazy(() => import("./pages/ServicesPage"));
 const HomePage = lazy(() => import("./pages/HomePage"));
 const AlertDetailPage = lazy(() => import("./pages/AlertDetailPage"));
 const MultiDeviceDashboard = lazy(() => import("./pages/MultiDeviceDashboard"));
+const LogsPage = lazy(() => import("./pages/LogsPage"));
 
 function LoadingFallback() {
   return (
@@ -53,6 +54,9 @@ function Router() {
 
         {/* Trang Cảnh báo */}
         <Route path="/alerts/:id" component={AlertDetailPage} />
+        
+        {/* Trang Logs */}
+        <Route path="/logs/:id" component={LogsPage} />
         
         {/* Trang lỗi 404 */}
         <Route component={NotFound} />
