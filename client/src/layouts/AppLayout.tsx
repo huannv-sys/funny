@@ -19,9 +19,9 @@ export default function AppLayout({ children }: PropsWithChildren) {
         className={`${
           isMobile 
             ? isSidebarOpen 
-              ? "fixed inset-0 z-40" 
+              ? "fixed inset-0 z-40 overflow-hidden" 
               : "hidden" 
-            : "flex flex-shrink-0"
+            : "flex flex-shrink-0 h-screen"
         }`}
       >
         <Sidebar onClose={() => setIsSidebarOpen(false)} />
