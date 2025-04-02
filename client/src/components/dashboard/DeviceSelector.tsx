@@ -22,7 +22,7 @@ export default function DeviceSelector() {
 
   // Make sure we have a valid selection
   const hasValidDevices = devices.length > 0;
-  const currentValue = selectedDevice ? selectedDevice.id.toString() : (hasValidDevices ? devices[0].id.toString() : undefined);
+  const currentValue = selectedDevice?.id.toString() || "1"; // Use "1" as a fallback
 
   // If no devices are available, show a placeholder
   if (!hasValidDevices) {
@@ -47,7 +47,7 @@ export default function DeviceSelector() {
       </SelectTrigger>
       <SelectContent>
         {devices.map(device => (
-          <SelectItem key={device.id} value={device.id.toString()}>
+          <SelectItem key={device.id} value={device.id.toString() || "placeholder-value"}>
             {device.name} ({device.ipAddress})
           </SelectItem>
         ))}

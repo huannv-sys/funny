@@ -106,7 +106,7 @@ export default function WiFiSection() {
             
             <div className="mt-3 md:mt-0 flex space-x-3">
               <Select 
-                value={selectedInterface}
+                value={selectedInterface || "all"}
                 onValueChange={setSelectedInterface}
               >
                 <SelectTrigger className="w-[180px] bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-sm">
@@ -115,7 +115,7 @@ export default function WiFiSection() {
                 <SelectContent>
                   <SelectItem value="all">All WiFi Interfaces</SelectItem>
                   {interfaces.filter(iface => iface.type === 'wifi').map(iface => (
-                    <SelectItem key={iface.name} value={iface.name}>
+                    <SelectItem key={iface.name} value={iface.name || "placeholder-value"}>
                       {iface.name} ({iface.comment || ''})
                     </SelectItem>
                   ))}

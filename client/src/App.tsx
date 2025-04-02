@@ -37,10 +37,12 @@ function Router() {
 
 function App() {
   return (
-    <SharedWebSocketProvider>
-      <Router />
-      <Toaster />
-    </SharedWebSocketProvider>
+    <div className="h-full">
+      <SharedWebSocketProvider>
+        <Router />
+        <Toaster />
+      </SharedWebSocketProvider>
+    </div>
   );
 }
 
