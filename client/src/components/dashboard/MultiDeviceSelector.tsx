@@ -13,9 +13,10 @@ export default function MultiDeviceSelector() {
   // Auto-select the first device if none is selected
   useEffect(() => {
     if (devices.length > 0 && selectedDevices.length === 0) {
+      console.log("Auto-selecting first device:", devices[0]);
       selectMultipleDevices([devices[0]]);
     }
-  }, [devices, selectedDevices, selectMultipleDevices]);
+  }, [devices, selectedDevices.length, selectMultipleDevices]);
 
   // Check if there are valid devices
   const hasValidDevices = devices.length > 0;
@@ -50,7 +51,10 @@ export default function MultiDeviceSelector() {
                 <Checkbox 
                   id={`device-${device.id}`}
                   checked={selectedDevices.some(d => d.id === device.id)}
-                  onCheckedChange={() => toggleDeviceSelection(device)}
+                  onCheckedChange={() => {
+                    console.log("Toggling device selection:", device.id, device.name);
+                    toggleDeviceSelection(device);
+                  }}
                 />
                 <label 
                   htmlFor={`device-${device.id}`}

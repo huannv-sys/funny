@@ -190,6 +190,7 @@ export function DeviceProvider({ children }: { children: ReactNode }) {
   }, []);
   
   const selectMultipleDevices = useCallback((devices: MikrotikDevice[]) => {
+    console.log("Setting multiple devices:", devices);
     setSelectedDevices(devices);
     localStorage.setItem('selectedDeviceIds', JSON.stringify(devices.map(d => d.id)));
   }, []);
@@ -197,11 +198,20 @@ export function DeviceProvider({ children }: { children: ReactNode }) {
   const toggleDeviceSelection = useCallback((device: MikrotikDevice) => {
     setSelectedDevices(prev => {
       const isSelected = prev.some(d => d.id === device.id);
+      let newSelection;
+      
       if (isSelected) {
-        return prev.filter(d => d.id !== device.id);
+        newSelection = prev.filter(d => d.id !== device.id);
+        console.log("Device removed from selection:", device.id, device.name);
       } else {
-        return [...prev, device];
+        newSelection = [...prev, device];
+        console.log("Device added to selection:", device.id, device.name);
       }
+      
+      // Lưu danh sách thiết bị đã chọn vào localStorage
+      localStorage.setItem('selectedDeviceIds', JSON.stringify(newSelection.map(d => d.id)));
+      
+      return newSelection;
     });
   }, []);
 
