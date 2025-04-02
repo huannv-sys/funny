@@ -4,7 +4,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { Device, Alert, insertDeviceSchema, insertAlertSchema } from "@shared/schema";
 import { z } from "zod";
-import { createConnection, closeConnection } from "./mikrotik/connection";
+import { createConnection, closeConnection, executeCommand } from "./mikrotik/connection";
 import { getInterfaces, monitorAllInterfaceTraffic, monitorInterfaceTraffic, calculateTrafficSummary } from "./mikrotik/traffic";
 import { getWiFiClients } from "./mikrotik/wifi";
 import { getDetailedSystemInfo } from "./mikrotik/system";
@@ -718,6 +718,154 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     }
   }
+
+  // Lấy thông tin về firewall rules
+  app.get('/api/devices/:id/firewall', async (req, res) => {
+    try {
+      const deviceId = parseInt(req.params.id);
+      const device = await mikrotikStorage.getDevice(deviceId);
+      
+      if (!device) {
+        return res.status(404).json({ error: 'Device not found' });
+      }
+
+      const conn = await createConnection(device);
+      
+      // Lấy firewall filter rules
+      const filterRules = await executeCommand(conn, '/ip/firewall/filter/print', []);
+      
+      // Lấy firewall NAT rules
+      const natRules = await executeCommand(conn, '/ip/firewall/nat/print', []);
+      
+      // Lấy address lists
+      let addressLists = [];
+      try {
+        addressLists = await executeCommand(conn, '/ip/firewall/address-list/print', []);
+      } catch (error) {
+        console.log('Error fetching address lists:', error);
+      }
+      
+      res.json({
+        filterRules,
+        natRules,
+        addressLists
+      });
+    } catch (error) {
+      console.error('Error fetching firewall rules:', error);
+      res.status(500).json({ error: 'Failed to fetch firewall rules' });
+    }
+  });
+  
+  // Lấy thông tin về DHCP
+  app.get('/api/devices/:id/dhcp', async (req, res) => {
+    try {
+      const deviceId = parseInt(req.params.id);
+      const device = await mikrotikStorage.getDevice(deviceId);
+      
+      if (!device) {
+        return res.status(404).json({ error: 'Device not found' });
+      }
+
+      const conn = await createConnection(device);
+      
+      // Lấy DHCP servers
+      const servers = await executeCommand(conn, '/ip/dhcp-server/print', []);
+      
+      // Lấy DHCP leases
+      const leases = await executeCommand(conn, '/ip/dhcp-server/lease/print', []);
+      
+      // Lấy DHCP networks
+      const networks = await executeCommand(conn, '/ip/dhcp-server/network/print', []);
+      
+      res.json({
+        servers,
+        leases,
+        networks
+      });
+    } catch (error) {
+      console.error('Error fetching DHCP info:', error);
+      res.status(500).json({ error: 'Failed to fetch DHCP info' });
+    }
+  });
+  
+  // Lấy thông tin về định tuyến
+  app.get('/api/devices/:id/routing', async (req, res) => {
+    try {
+      const deviceId = parseInt(req.params.id);
+      const device = await mikrotikStorage.getDevice(deviceId);
+      
+      if (!device) {
+        return res.status(404).json({ error: 'Device not found' });
+      }
+
+      const conn = await createConnection(device);
+      
+      // Lấy routing tables
+      const routes = await executeCommand(conn, '/ip/route/print', []);
+      
+      // Lấy thông tin giao thức định tuyến
+      let bgp = [];
+      let ospf = [];
+      
+      try {
+        bgp = await executeCommand(conn, '/routing/bgp/peer/print', []);
+      } catch (error) {
+        console.log('BGP may not be configured or supported');
+      }
+      
+      try {
+        ospf = await executeCommand(conn, '/routing/ospf/neighbor/print', []);
+      } catch (error) {
+        console.log('OSPF may not be configured or supported');
+      }
+      
+      res.json({
+        routes,
+        bgp,
+        ospf
+      });
+    } catch (error) {
+      console.error('Error fetching routing info:', error);
+      res.status(500).json({ error: 'Failed to fetch routing info' });
+    }
+  });
+  
+  // Lấy thông tin WiFi chi tiết
+  app.get('/api/devices/:id/wifi/details', async (req, res) => {
+    try {
+      const deviceId = parseInt(req.params.id);
+      const device = await mikrotikStorage.getDevice(deviceId);
+      
+      if (!device) {
+        return res.status(404).json({ error: 'Device not found' });
+      }
+
+      const conn = await createConnection(device);
+      
+      // Lấy thông tin giao diện WiFi
+      const interfaces = await executeCommand(conn, '/interface/wireless/print', []);
+      
+      // Lấy thông tin clients kết nối WiFi
+      const clients = await executeCommand(conn, '/interface/wireless/registration-table/print', []);
+      
+      // Lấy thông tin Access List
+      let accessList = [];
+      try {
+        accessList = await executeCommand(conn, '/interface/wireless/access-list/print', []);
+      } catch (error) {
+        console.log('Wireless access list may not be configured');
+      }
+      
+      res.json({
+        interfaces,
+        clients,
+        accessList
+      });
+    } catch (error) {
+      console.error('Error fetching WiFi details:', error);
+      res.status(500).json({ error: 'Failed to fetch WiFi details' });
+    }
+  });
 
   // Alerts
   app.get('/api/devices/:id/alerts', async (req, res) => {
