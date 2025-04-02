@@ -8,6 +8,7 @@ import { createConnection, closeConnection } from "./mikrotik/connection";
 import { getInterfaces, monitorAllInterfaceTraffic, monitorInterfaceTraffic, calculateTrafficSummary } from "./mikrotik/traffic";
 import { getWiFiClients } from "./mikrotik/wifi";
 import { getDetailedSystemInfo } from "./mikrotik/system";
+import { getLogs, getFilteredLogs } from "./mikrotik/logs";
 
 // In-memory storage for connected clients
 const clients: Map<string, WebSocket> = new Map();
@@ -152,7 +153,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const data = JSON.parse(message.toString());
         console.log(`Received message from ${clientId}:`, data);
-        // Handle client messages here
+        
+        // Handle subscription/unsubscription requests
+        if (data.type === 'subscribe') {
+          // Handle subscription request (logs, traffic, etc.)
+          if (data.target === 'logs' && data.deviceId) {
+            // Handle logs subscription
+            fetchLogsForClient(data.deviceId, ws);
+          }
+        } else if (data.type === 'unsubscribe') {
+          // Handle unsubscription request
+        }
       } catch (error) {
         console.error('Error parsing WebSocket message:', error);
       }
@@ -531,6 +542,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: 'Failed to fetch file list' });
     }
   });
+  
+  // Device Logs
+  app.get('/api/devices/:id/logs', async (req, res) => {
+    try {
+      const deviceId = parseInt(req.params.id);
+      const device = await mikrotikStorage.getDevice(deviceId);
+      
+      if (!device) {
+        return res.status(404).json({ error: 'Device not found' });
+      }
+      
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 100;
+      const topics = req.query.topics as string | undefined;
+      
+      const conn = await createConnection(device);
+      
+      let logs;
+      if (topics) {
+        logs = await getFilteredLogs(conn, topics, limit);
+      } else {
+        logs = await getLogs(conn, limit);
+      }
+      
+      res.json(logs);
+    } catch (error) {
+      console.error('Error fetching logs:', error);
+      res.status(500).json({ error: 'Failed to fetch logs' });
+    }
+  });
+  
+  // Helper function to fetch logs for a specific client via WebSocket
+  async function fetchLogsForClient(deviceId: number, ws: WebSocket): Promise<void> {
+    try {
+      if (ws.readyState !== WebSocket.OPEN) {
+        return;
+      }
+      
+      const device = await mikrotikStorage.getDevice(deviceId);
+      
+      if (!device) {
+        ws.send(JSON.stringify({ 
+          type: 'error', 
+          message: 'Device not found',
+          target: 'logs'
+        }));
+        return;
+      }
+      
+      const conn = await createConnection(device);
+      const logs = await getLogs(conn, 100);
+      
+      ws.send(JSON.stringify({ 
+        type: 'logs', 
+        deviceId,
+        data: logs 
+      }));
+    } catch (error) {
+      console.error(`Error fetching logs for WebSocket client:`, error);
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ 
+          type: 'error', 
+          message: 'Failed to fetch logs',
+          target: 'logs'
+        }));
+      }
+    }
+  }
 
   // Alerts
   app.get('/api/devices/:id/alerts', async (req, res) => {

@@ -8,13 +8,15 @@ import {
   WiFiClient,
   StorageDevice,
   FileInfo,
-  Alert
+  Alert,
+  LogEntry
 } from '@/types/mikrotik';
 import { useWebSocketWithReconnect } from '@/lib/websocket';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import useLiveUpdates from './useLiveUpdates';
 import { useSharedWebSocket } from './useSharedWebSocket';
+import { LogsProvider } from './useLogsData';
 
 // Define context types
 type DeviceContextType = {

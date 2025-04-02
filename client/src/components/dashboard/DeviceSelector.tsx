@@ -1,4 +1,4 @@
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DeviceContext } from "@/hooks/useMikrotikData";
 
@@ -13,9 +13,29 @@ export default function DeviceSelector() {
     }
   };
 
+  // Auto-select the first device if none is selected
+  useEffect(() => {
+    if (devices.length > 0 && !selectedDevice) {
+      selectDevice(devices[0]);
+    }
+  }, [devices, selectedDevice, selectDevice]);
+
+  // Make sure we have a valid selection
+  const hasValidDevices = devices.length > 0;
+  const currentValue = selectedDevice ? selectedDevice.id.toString() : (hasValidDevices ? devices[0].id.toString() : undefined);
+
+  // If no devices are available, show a placeholder
+  if (!hasValidDevices) {
+    return (
+      <div className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md text-sm">
+        No devices available
+      </div>
+    );
+  }
+
   return (
     <Select
-      value={selectedDevice ? selectedDevice.id.toString() : ""}
+      value={currentValue}
       onValueChange={handleDeviceChange}
     >
       <SelectTrigger className="w-full px-3 py-2 bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 rounded-md text-sm">

@@ -107,3 +107,11 @@ export interface Alert {
   read: boolean;
   data?: any;
 }
+
+export interface LogEntry {
+  id: string;
+  topics: string;
+  message: string;
+  time: string;
+  severity: 'info' | 'warning' | 'error' | 'critical' | 'debug';
+}

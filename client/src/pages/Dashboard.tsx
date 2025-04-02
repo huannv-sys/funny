@@ -6,6 +6,7 @@ import TrafficSection from "@/components/dashboard/TrafficSection";
 import WiFiSection from "@/components/dashboard/WiFiSection";
 import SystemResourcesSection from "@/components/dashboard/SystemResourcesSection";
 import AlertSection from "@/components/dashboard/AlertSection";
+import LogsSection from "@/components/dashboard/LogsSection";
 import { 
   DeviceProvider, 
   MikrotikDataProvider, 
@@ -14,6 +15,7 @@ import {
   SystemProvider, 
   AlertsProvider 
 } from "@/hooks/useMikrotikData";
+import { LogsProvider } from "@/hooks/useLogsData";
 import useLiveUpdates from "@/hooks/useLiveUpdates";
 
 export default function Dashboard() {
@@ -26,15 +28,18 @@ export default function Dashboard() {
           <WiFiProvider>
             <SystemProvider>
               <AlertsProvider>
-                <AppLayout>
-                  <DashboardHeader isLiveEnabled={isLiveEnabled} setIsLiveEnabled={setIsLiveEnabled} />
-                  <StatusCards />
-                  
-                  <TrafficSection />
-                  <WiFiSection />
-                  <SystemResourcesSection />
-                  <AlertSection />
-                </AppLayout>
+                <LogsProvider>
+                  <AppLayout>
+                    <DashboardHeader isLiveEnabled={isLiveEnabled} setIsLiveEnabled={setIsLiveEnabled} />
+                    <StatusCards />
+                    
+                    <TrafficSection />
+                    <WiFiSection />
+                    <SystemResourcesSection />
+                    <AlertSection />
+                    <LogsSection />
+                  </AppLayout>
+                </LogsProvider>
               </AlertsProvider>
             </SystemProvider>
           </WiFiProvider>

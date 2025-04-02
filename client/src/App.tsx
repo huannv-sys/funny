@@ -2,6 +2,8 @@ import { Switch, Route } from "wouter";
 import { Suspense, lazy } from "react";
 import { Card, CardContent } from "./components/ui/card";
 import { Spinner } from "./components/ui/spinner";
+import { SharedWebSocketProvider } from "./hooks/useSharedWebSocket";
+import { Toaster } from "./components/ui/toaster";
 import LoginPage from "./pages/LoginPage";
 import Dashboard from "./pages/Dashboard";
 
@@ -34,7 +36,12 @@ function Router() {
 }
 
 function App() {
-  return <Router />;
+  return (
+    <SharedWebSocketProvider>
+      <Router />
+      <Toaster />
+    </SharedWebSocketProvider>
+  );
 }
 
 export default App;

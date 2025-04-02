@@ -40,7 +40,7 @@ class MockRouterOSAPI extends RouterOSAPI {
       return [
         {
           uptime: '259200',  // 3 days
-          version: '6.49.7',
+          version: '7.10.2',
           'free-memory': (256 * 1024 * 1024).toString(), // 256MB
           'total-memory': (512 * 1024 * 1024).toString(), // 512MB
           cpu: '3',
@@ -52,6 +52,8 @@ class MockRouterOSAPI extends RouterOSAPI {
           architecture: 'arm',
           'board-name': 'hAP ac²',
           platform: 'MikroTik',
+          'factory-software': 'RouterOS',
+          'firmware-type': 'stable'
         }
       ];
     } else if (command === '/system/identity/print') {
@@ -93,6 +95,70 @@ class MockRouterOSAPI extends RouterOSAPI {
           'tx-rate': '54Mbps',
           'rx-rate': '65Mbps',
           uptime: '2h17m42s'
+        }
+      ];
+    } else if (command === '/log/print') {
+      // Generate mock logs with different severity levels
+      return [
+        { 
+          '.id': '*1',
+          'time': (new Date(Date.now() - 3600000)).toLocaleString(), // 1 hour ago
+          'topics': 'system,info',
+          'message': 'system started'
+        },
+        { 
+          '.id': '*2',
+          'time': (new Date(Date.now() - 3400000)).toLocaleString(),
+          'topics': 'wireless,info',
+          'message': 'wireless client DC:FB:48:79:12:34 connected to wlan1'
+        },
+        { 
+          '.id': '*3',
+          'time': (new Date(Date.now() - 2800000)).toLocaleString(),
+          'topics': 'wireless,info',
+          'message': 'wireless client 00:11:22:33:44:55 connected to wlan1'
+        },
+        { 
+          '.id': '*4',
+          'time': (new Date(Date.now() - 1800000)).toLocaleString(),
+          'topics': 'system,warning',
+          'message': 'CPU temperature is high: 72°C'
+        },
+        { 
+          '.id': '*5',
+          'time': (new Date(Date.now() - 900000)).toLocaleString(), 
+          'topics': 'firewall,warning',
+          'message': 'Blocked suspicious connection attempt from 203.0.113.42:38012'
+        },
+        { 
+          '.id': '*6',
+          'time': (new Date(Date.now() - 600000)).toLocaleString(),
+          'topics': 'dhcp,info',
+          'message': 'DHCP lease 192.168.1.105 assigned to DC:FB:48:79:12:34'
+        },
+        { 
+          '.id': '*7',
+          'time': (new Date(Date.now() - 300000)).toLocaleString(),
+          'topics': 'system,error',
+          'message': 'Interface ether2 link down'
+        },
+        { 
+          '.id': '*8',
+          'time': (new Date(Date.now() - 180000)).toLocaleString(),
+          'topics': 'system,info',
+          'message': 'Interface ether2 link up'
+        },
+        { 
+          '.id': '*9',
+          'time': (new Date(Date.now() - 60000)).toLocaleString(),
+          'topics': 'firewall,critical',
+          'message': 'Possible DoS attack detected from 198.51.100.24'
+        },
+        { 
+          '.id': '*10',
+          'time': (new Date()).toLocaleString(),
+          'topics': 'system,debug',
+          'message': 'Health monitor checking system resources'
         }
       ];
     }
