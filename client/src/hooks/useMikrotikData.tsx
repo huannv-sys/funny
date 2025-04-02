@@ -14,6 +14,7 @@ import { useWebSocketWithReconnect } from '@/lib/websocket';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import useLiveUpdates from './useLiveUpdates';
+import { useSharedWebSocket } from './useSharedWebSocket';
 
 // Define context types
 type DeviceContextType = {
@@ -213,19 +214,33 @@ export function TrafficProvider({ children }: { children: ReactNode }) {
   const { isLiveEnabled } = useLiveUpdates();
   const { selectedDevice } = useContext(DeviceContext);
   const { toast } = useToast();
+  const { wsState } = useSharedWebSocket();
 
-  const handleTrafficUpdate = useCallback((data: any) => {
-    if (data.type === 'interfaceTraffic') {
-      setInterfaceTraffic(data.data);
-    } else if (data.type === 'trafficSummary') {
-      setTrafficSummary(data.data);
-    }
-  }, []);
-
-  const [wsState] = useWebSocketWithReconnect<any>(
-    isLiveEnabled && !!selectedDevice,
-    handleTrafficUpdate
-  );
+  // Handle WebSocket messages
+  useEffect(() => {
+    if (!wsState.socket || !isLiveEnabled || !selectedDevice) return;
+    
+    const messageHandler = (event: MessageEvent) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === 'interfaceTraffic') {
+          setInterfaceTraffic(data.data);
+        } else if (data.type === 'trafficSummary') {
+          setTrafficSummary(data.data);
+        }
+      } catch (error) {
+        console.error("Error handling traffic WebSocket message:", error);
+      }
+    };
+    
+    wsState.socket.addEventListener('message', messageHandler);
+    
+    return () => {
+      if (wsState.socket) {
+        wsState.socket.removeEventListener('message', messageHandler);
+      }
+    };
+  }, [wsState.socket, isLiveEnabled, selectedDevice]);
 
   const getInterfaces = useCallback(async () => {
     if (!selectedDevice) return;
@@ -279,8 +294,8 @@ export function TrafficProvider({ children }: { children: ReactNode }) {
           undefined
         );
         const data = await response.json();
-        setInterfaceTraffic(data.interfaces);
-        setTrafficSummary(data.summary);
+        setInterfaceTraffic(data.interfaces || {});
+        setTrafficSummary(data.summary || null);
       } catch (error) {
         console.error("Failed to fetch traffic data:", error);
       }
@@ -315,17 +330,31 @@ export function WiFiProvider({ children }: { children: ReactNode }) {
   const { isLiveEnabled } = useLiveUpdates();
   const { selectedDevice } = useContext(DeviceContext);
   const { toast } = useToast();
+  const { wsState } = useSharedWebSocket();
 
-  const handleWifiUpdate = useCallback((data: any) => {
-    if (data.type === 'wifiClients') {
-      setWifiClients(data.data);
-    }
-  }, []);
-
-  const [wsState] = useWebSocketWithReconnect<any>(
-    isLiveEnabled && !!selectedDevice,
-    handleWifiUpdate
-  );
+  // Handle WebSocket messages
+  useEffect(() => {
+    if (!wsState.socket || !isLiveEnabled || !selectedDevice) return;
+    
+    const messageHandler = (event: MessageEvent) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === 'wifiClients') {
+          setWifiClients(data.data);
+        }
+      } catch (error) {
+        console.error("Error handling WiFi WebSocket message:", error);
+      }
+    };
+    
+    wsState.socket.addEventListener('message', messageHandler);
+    
+    return () => {
+      if (wsState.socket) {
+        wsState.socket.removeEventListener('message', messageHandler);
+      }
+    };
+  }, [wsState.socket, isLiveEnabled, selectedDevice]);
 
   const getWifiClients = useCallback(async () => {
     if (!selectedDevice) return;
@@ -386,19 +415,33 @@ export function SystemProvider({ children }: { children: ReactNode }) {
   const { isLiveEnabled } = useLiveUpdates();
   const { selectedDevice } = useContext(DeviceContext);
   const { toast } = useToast();
+  const { wsState } = useSharedWebSocket();
 
-  const handleSystemUpdate = useCallback((data: any) => {
-    if (data.type === 'systemInfo') {
-      setSystemInfo(data.data);
-    } else if (data.type === 'storageInfo') {
-      setStorageInfo(data.data);
-    }
-  }, []);
-
-  const [wsState] = useWebSocketWithReconnect<any>(
-    isLiveEnabled && !!selectedDevice,
-    handleSystemUpdate
-  );
+  // Handle WebSocket messages
+  useEffect(() => {
+    if (!wsState.socket || !isLiveEnabled || !selectedDevice) return;
+    
+    const messageHandler = (event: MessageEvent) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === 'systemInfo') {
+          setSystemInfo(data.data);
+        } else if (data.type === 'storageInfo') {
+          setStorageInfo(data.data);
+        }
+      } catch (error) {
+        console.error("Error handling system WebSocket message:", error);
+      }
+    };
+    
+    wsState.socket.addEventListener('message', messageHandler);
+    
+    return () => {
+      if (wsState.socket) {
+        wsState.socket.removeEventListener('message', messageHandler);
+      }
+    };
+  }, [wsState.socket, isLiveEnabled, selectedDevice]);
 
   const getSystemInfo = useCallback(async () => {
     if (!selectedDevice) return;
@@ -484,23 +527,37 @@ export function AlertsProvider({ children }: { children: ReactNode }) {
   const { isLiveEnabled } = useLiveUpdates();
   const { selectedDevice } = useContext(DeviceContext);
   const { toast } = useToast();
+  const { wsState } = useSharedWebSocket();
 
-  const handleAlertUpdate = useCallback((data: any) => {
-    if (data.type === 'newAlert') {
-      setAlerts(prev => [data.data, ...prev]);
-      
-      toast({
-        title: `New ${data.data.severity} Alert`,
-        description: data.data.message,
-        variant: data.data.severity === 'critical' ? 'destructive' : 'default',
-      });
-    }
-  }, [toast]);
-
-  const [wsState] = useWebSocketWithReconnect<any>(
-    isLiveEnabled && !!selectedDevice,
-    handleAlertUpdate
-  );
+  // Handle WebSocket messages
+  useEffect(() => {
+    if (!wsState.socket || !isLiveEnabled || !selectedDevice) return;
+    
+    const messageHandler = (event: MessageEvent) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === 'newAlert') {
+          setAlerts(prev => [data.data, ...prev]);
+          
+          toast({
+            title: `New ${data.data.severity} Alert`,
+            description: data.data.message,
+            variant: data.data.severity === 'critical' ? 'destructive' : 'default',
+          });
+        }
+      } catch (error) {
+        console.error("Error handling alerts WebSocket message:", error);
+      }
+    };
+    
+    wsState.socket.addEventListener('message', messageHandler);
+    
+    return () => {
+      if (wsState.socket) {
+        wsState.socket.removeEventListener('message', messageHandler);
+      }
+    };
+  }, [wsState.socket, isLiveEnabled, selectedDevice, toast]);
 
   const getAlerts = useCallback(async () => {
     if (!selectedDevice) return;
