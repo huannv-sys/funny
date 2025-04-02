@@ -166,14 +166,17 @@ export function DeviceProvider({ children }: { children: ReactNode }) {
   const refreshDevices = useCallback(async () => {
     setLoading(true);
     try {
+      console.log("Fetching devices...");
       const response = await apiRequest('GET', '/api/devices', undefined);
       const data = await response.json();
+      console.log("Devices fetched:", data);
       setDevices(data);
       
       if (!selectedDevice && data.length > 0) {
         setSelectedDevice(data[0]);
       }
     } catch (error) {
+      console.error("Error fetching devices:", error);
       toast({
         title: "Error",
         description: "Failed to fetch devices",
