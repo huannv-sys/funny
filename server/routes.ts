@@ -222,6 +222,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   }
 
+  // Loại dữ liệu
+  type DataCategory = 'static' | 'dynamic' | 'onDemand';
+  
+  // Cấu hình mặc định
+  const defaultRefreshRates: Record<DataCategory, number> = {
+    static: 3600000,    // 1 giờ - dữ liệu ít thay đổi (model, phiên bản, v.v.)
+    dynamic: 10000,     // 10 giây - dữ liệu thay đổi thường xuyên (traffic, CPU, RAM)
+    onDemand: 0         // 0 = chỉ cập nhật khi có yêu cầu (logs, alerts, v.v.)
+  };
+  
+  // Dữ liệu và thời gian cập nhật lần cuối
+  const dataLastUpdated: Record<string, Date> = {
+    static: new Date(0),
+    dynamic: new Date(0),
+    system: new Date(0),
+    interfaces: new Date(0),
+    traffic: new Date(0)
+  };
+
   // Start monitoring a device
   async function startMonitoringDevice(device: Device): Promise<void> {
     // Stop existing monitoring if any
@@ -230,23 +249,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     // Start a new monitoring interval
     const interval = setInterval(async () => {
       try {
+        const now = new Date();
         const conn = await createConnection(device);
 
-        // Monitor traffic
+        // Luôn cập nhật dữ liệu động
+        // Monitor traffic (dynamic data)
         const interfaceTraffic = await monitorAllInterfaceTraffic(conn);
         const trafficSummary = calculateTrafficSummary(interfaceTraffic);
+        
+        broadcast({ type: 'interfaceTraffic', deviceId: device.id, data: interfaceTraffic });
+        broadcast({ type: 'trafficSummary', deviceId: device.id, data: trafficSummary });
+        dataLastUpdated.traffic = now;
+        dataLastUpdated.dynamic = now;
 
-        // Get system info (less frequently to reduce load)
-        const systemData = await getDetailedSystemInfo(conn);
-
-        // Broadcast updates to all clients
-        broadcast({ type: 'interfaceTraffic', data: interfaceTraffic });
-        broadcast({ type: 'trafficSummary', data: trafficSummary });
-        broadcast({ type: 'systemInfo', data: systemData.systemInfo });
-        broadcast({ type: 'storageInfo', data: systemData.storageInfo });
-
-        // Check for alerts
-        checkForAlerts(device.id, interfaceTraffic, systemData.systemInfo);
+        // System info là dữ liệu bán động - chỉ cập nhật mỗi 15 giây
+        if (now.getTime() - dataLastUpdated.system.getTime() > 15000) {
+          const systemData = await getDetailedSystemInfo(conn);
+          broadcast({ type: 'systemInfo', deviceId: device.id, data: systemData.systemInfo });
+          broadcast({ type: 'storageInfo', deviceId: device.id, data: systemData.storageInfo });
+          dataLastUpdated.system = now;
+          
+          // Check for alerts
+          checkForAlerts(device.id, interfaceTraffic, systemData.systemInfo);
+        }
 
       } catch (error) {
         console.error(`Error monitoring device ${device.id}:`, error);
@@ -258,12 +283,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: 'Connection Lost',
           description: `Failed to connect to device: ${(error as Error).message}`,
         });
-        broadcast({ type: 'newAlert', data: alert });
+        broadcast({ type: 'newAlert', deviceId: device.id, data: alert });
       }
-    }, 5000); // Monitor every 5 seconds
+    }, defaultRefreshRates.dynamic); // Use the dynamic refresh rate
 
     monitoringIntervals.set(device.id, interval);
-    console.log(`Started monitoring device ${device.id} (${device.name})`);
+    console.log(`Started monitoring device ${device.id} (${device.name}) with dynamic refresh rate: ${defaultRefreshRates.dynamic}ms`);
   }
 
   // Stop monitoring a device

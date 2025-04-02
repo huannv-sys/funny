@@ -30,10 +30,18 @@ type DeviceContextType = {
   loading: boolean;
 };
 
+// Loại dữ liệu: 
+// - static: ít thay đổi (model, version, serial number, etc.)
+// - dynamic: thay đổi thường xuyên (CPU, RAM, traffic, etc.)
+// - onDemand: cần kích hoạt để cập nhật (logs, alerts, etc.)
+type DataCategory = 'static' | 'dynamic' | 'onDemand';
+
 type MikrotikDataContextType = {
   isConnected: boolean;
   lastUpdated: Date | null;
   refreshAllData: () => void;
+  dataRefreshRates: Record<DataCategory, number>;
+  updateRefreshRate: (dataType: DataCategory, milliseconds: number) => void;
 };
 
 type TrafficContextType = {
@@ -70,6 +78,12 @@ export const MikrotikDataContext = createContext<MikrotikDataContextType>({
   isConnected: false,
   lastUpdated: null,
   refreshAllData: () => {},
+  dataRefreshRates: {
+    static: 3600000,   // 1 giờ - dữ liệu ít thay đổi
+    dynamic: 10000,    // 10 giây - dữ liệu thay đổi thường xuyên
+    onDemand: 0        // 0 = chỉ cập nhật khi có yêu cầu
+  },
+  updateRefreshRate: () => {},
 });
 
 export const DeviceContext = createContext<DeviceContextType>({
@@ -116,10 +130,23 @@ export const AlertsContext = createContext<AlertsContextType>({
 export function MikrotikDataProvider({ children }: { children: ReactNode }) {
   const [isConnected, setIsConnected] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  // Phân loại dữ liệu thành 3 loại
+  const [dataRefreshRates, setDataRefreshRates] = useState<Record<DataCategory, number>>({
+    static: 3600000,    // 1 giờ - dữ liệu ít thay đổi (model, version, etc.)
+    dynamic: 10000,     // 10 giây - dữ liệu thay đổi thường xuyên (traffic, CPU, RAM)
+    onDemand: 0         // 0 = chỉ cập nhật khi người dùng yêu cầu (logs, alerts, etc.)
+  });
   const { toast } = useToast();
 
   const refreshAllData = useCallback(() => {
     setLastUpdated(new Date());
+  }, []);
+
+  const updateRefreshRate = useCallback((dataType: DataCategory, milliseconds: number) => {
+    setDataRefreshRates(prev => ({
+      ...prev,
+      [dataType]: milliseconds
+    }));
   }, []);
 
   useEffect(() => {
@@ -148,7 +175,9 @@ export function MikrotikDataProvider({ children }: { children: ReactNode }) {
       value={{
         isConnected,
         lastUpdated,
-        refreshAllData
+        refreshAllData,
+        dataRefreshRates,
+        updateRefreshRate
       }}
     >
       {children}
