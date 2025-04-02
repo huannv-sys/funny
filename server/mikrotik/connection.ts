@@ -2,8 +2,8 @@ import { RouterOSAPI } from 'routeros-api';
 import { Device } from '@shared/schema';
 
 // Check environment to decide whether to use mock data or real device
-// Nếu biến môi trường USE_MOCK_DATA không được đặt, sử dụng true để mặc định sử dụng dữ liệu mô phỏng
-const USE_MOCK_DATA = process.env.USE_MOCK_DATA !== 'false';
+// Kiểm tra biến môi trường USE_MOCK_DATA để quyết định có sử dụng dữ liệu mô phỏng không
+const USE_MOCK_DATA = process.env.USE_MOCK_DATA === 'true';
 
 // Cache connections to prevent creating multiple connections to the same device
 const connectionCache: Map<number, RouterOSAPI> = new Map();
@@ -213,14 +213,8 @@ export async function createConnection(device: Device): Promise<RouterOSAPI> {
   } catch (error) {
     console.error(`Failed to connect to MikroTik device: ${(error as Error).message}`);
     
-    // If real connection fails, fall back to mock for development
-    if (USE_MOCK_DATA) {
-      console.log(`[MOCK] Falling back to mock data for device ${device.id} (${device.name})`);
-      const mockConn = new MockRouterOSAPI(device.id, device.name);
-      connectionCache.set(device.id, mockConn as unknown as RouterOSAPI);
-      return mockConn as unknown as RouterOSAPI;
-    }
-    
+    // Không tự động chuyển sang chế độ dữ liệu giả lập ngay cả khi kết nối thất bại
+    // Điều này đảm bảo rằng chúng ta luôn biết khi có vấn đề kết nối thực sự
     throw new Error(`Failed to connect to MikroTik device: ${(error as Error).message}`);
   }
 }
