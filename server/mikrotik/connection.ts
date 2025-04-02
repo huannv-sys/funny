@@ -1,8 +1,8 @@
 import { RouterOSAPI } from 'routeros-api';
 import { Device } from '@shared/schema';
 
-// For development purposes, we'll use mock data since no real MikroTik device is available
-const USE_MOCK_DATA = true;
+// Check environment to decide whether to use mock data or real device
+const USE_MOCK_DATA = process.env.USE_MOCK_DATA === 'true' || false;
 
 // Cache connections to prevent creating multiple connections to the same device
 const connectionCache: Map<number, RouterOSAPI> = new Map();

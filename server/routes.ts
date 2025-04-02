@@ -15,6 +15,30 @@ const clients: Map<string, WebSocket> = new Map();
 // In-memory storage for device monitoring intervals
 const monitoringIntervals: Map<number, NodeJS.Timeout> = new Map();
 
+// Helper function to get MikroTik connection details from environment variables
+function getEnvMikrotikDevice(): Device | null {
+  const host = process.env.MIKROTIK_HOST;
+  const user = process.env.MIKROTIK_USER;
+  const pass = process.env.MIKROTIK_PASS;
+  
+  if (!host || !user || !pass) {
+    console.log('Missing MikroTik environment variables. Using mock data.');
+    return null;
+  }
+  
+  return {
+    id: 1,
+    name: 'MikroTik Router',
+    ipAddress: host,
+    username: user,
+    password: pass,
+    port: 8728,
+    model: 'Unknown',
+    version: 'Unknown',
+    lastConnected: new Date().toISOString()
+  };
+}
+
 // Custom storage interface extension (could be moved to storage.ts)
 interface IMikrotikStorage {
   getDevices(): Promise<Device[]>;
@@ -41,16 +65,25 @@ class MikrotikStorage implements IMikrotikStorage {
     this.currentDeviceId = 1;
     this.currentAlertId = 1;
 
-    // Add some demo devices
-    this.createDevice({
-      name: "MikroTik Router 1",
-      ipAddress: "192.168.88.1",
-      username: "admin",
-      password: "password", // In a real app, this should be encrypted
-      port: 8728,
-      model: "hAP ac²",
-      version: "RouterOS v7.10.2",
-    });
+    // Check for environment variables for real device
+    const envDevice = getEnvMikrotikDevice();
+    
+    if (envDevice) {
+      console.log("Using MikroTik device from environment variables");
+      this.createDevice(envDevice);
+    } else {
+      // Fall back to mock device if environment variables not provided
+      console.log("Using mock MikroTik device");
+      this.createDevice({
+        name: "MikroTik Router 1",
+        ipAddress: "192.168.88.1",
+        username: "admin",
+        password: "password", // In a real app, this should be encrypted
+        port: 8728,
+        model: "hAP ac²",
+        version: "RouterOS v7.10.2",
+      });
+    }
   }
 
   async getDevices(): Promise<Device[]> {
