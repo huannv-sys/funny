@@ -15,6 +15,7 @@ const RoutingPage = lazy(() => import("./pages/RoutingPage"));
 const VPNPage = lazy(() => import("./pages/VPNPage"));
 const QoSPage = lazy(() => import("./pages/QoSPage"));
 const ServicesPage = lazy(() => import("./pages/ServicesPage"));
+const HomePage = lazy(() => import("./pages/HomePage"));
 
 function LoadingFallback() {
   return (
@@ -33,8 +34,9 @@ function Router() {
   return (
     <Suspense fallback={<LoadingFallback />}>
       <Switch>
-        <Route path="/" component={Dashboard} />
+        <Route path="/" component={HomePage} />
         <Route path="/login" component={LoginPage} />
+        <Route path="/dashboard/:id" component={Dashboard} />
         
         {/* Trang Quản lý mạng */}
         <Route path="/firewall" component={FirewallPage} />

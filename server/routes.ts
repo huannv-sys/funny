@@ -302,6 +302,84 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/status', (req, res) => {
     res.json({ status: 'ok', version: '1.0.0', connectedClients: clients.size });
   });
+  
+  // Dashboard summary endpoint for all devices
+  app.get('/api/dashboards', async (req, res) => {
+    try {
+      const devices = await mikrotikStorage.getDevices();
+      const dashboards = await Promise.all(devices.map(async (device) => {
+        try {
+          // Skip devices that are not connected or unavailable
+          if (!device.lastConnected) {
+            return {
+              deviceId: device.id,
+              deviceName: device.name,
+              cpuUsage: 0,
+              memoryUsage: 0,
+              diskUsage: 0,
+              uptime: 'Offline',
+              interfacesUp: 0,
+              interfacesDown: 0,
+              activeConnections: 0,
+              alertsCount: 0
+            };
+          }
+
+          // Connect to device
+          const conn = await createConnection(device);
+          
+          // Get system information
+          const systemData = await getDetailedSystemInfo(conn);
+          
+          // Get interfaces
+          const interfaces = await getInterfaces(conn);
+          
+          // Get alerts for this device
+          const alerts = await mikrotikStorage.getAlerts(device.id);
+          const unreadAlerts = alerts.filter(alert => !alert.read);
+          
+          // Calculate interface status
+          const interfacesUp = interfaces.filter(iface => iface.running).length;
+          const interfacesDown = interfaces.filter(iface => !iface.running).length;
+          
+          // Return dashboard summary
+          return {
+            deviceId: device.id,
+            deviceName: device.name,
+            cpuUsage: systemData.systemInfo.cpuLoad || 0,
+            memoryUsage: systemData.systemInfo.memoryUsedPercent || 0,
+            diskUsage: systemData.storageInfo.length > 0 ? 
+              Math.round((systemData.storageInfo[0].total - systemData.storageInfo[0].free) / systemData.storageInfo[0].total * 100) : 0,
+            uptime: systemData.systemInfo.uptime || 'Unknown',
+            interfacesUp,
+            interfacesDown,
+            activeConnections: 0, // Thông tin này sẽ được lấy từ nguồn khác nếu cần
+            alertsCount: unreadAlerts.length
+          };
+        } catch (error) {
+          console.error(`Error getting dashboard for device ${device.id}:`, error);
+          // Return offline status for this device
+          return {
+            deviceId: device.id,
+            deviceName: device.name,
+            cpuUsage: 0,
+            memoryUsage: 0,
+            diskUsage: 0,
+            uptime: 'Offline',
+            interfacesUp: 0,
+            interfacesDown: 0,
+            activeConnections: 0,
+            alertsCount: 0
+          };
+        }
+      }));
+      
+      res.json(dashboards);
+    } catch (error) {
+      console.error('Error fetching dashboards:', error);
+      res.status(500).json({ error: 'Failed to fetch dashboards' });
+    }
+  });
 
   // Device endpoints
   app.get('/api/devices', async (req, res) => {
