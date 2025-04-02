@@ -125,7 +125,7 @@ export default function VPNPage() {
   const connectionsQuery = useQuery({
     queryKey: ['/api/devices', deviceId, 'vpn', 'connections'],
     queryFn: getQueryFn<VPNConnection[]>({ on401: 'throw' }),
-    staleTime: staleTime: 15000,
+    staleTime: 15000,
     refetchInterval: 30000,
     placeholderData: [],
   });
@@ -134,7 +134,7 @@ export default function VPNPage() {
   const peersQuery = useQuery({
     queryKey: ['/api/devices', deviceId, 'vpn', 'peers'],
     queryFn: getQueryFn<VPNPeer[]>({ on401: 'throw' }),
-    staleTime: staleTime: 15000,
+    staleTime: 15000,
     refetchInterval: 30000,
     placeholderData: [],
   });
@@ -143,7 +143,7 @@ export default function VPNPage() {
   const serversQuery = useQuery({
     queryKey: ['/api/devices', deviceId, 'vpn', 'servers'],
     queryFn: getQueryFn<VPNServer[]>({ on401: 'throw' }),
-    staleTime: staleTime: 30000,
+    staleTime: 30000,
     refetchInterval: 60000,
     placeholderData: [],
   });
@@ -152,7 +152,7 @@ export default function VPNPage() {
   const ipsecQuery = useQuery({
     queryKey: ['/api/devices', deviceId, 'vpn', 'ipsec'],
     queryFn: getQueryFn<IPSecPhase[]>({ on401: 'throw' }),
-    staleTime: staleTime: 15000,
+    staleTime: 15000,
     refetchInterval: 30000,
     placeholderData: [],
   });

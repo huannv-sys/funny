@@ -75,7 +75,7 @@ export default function ServicesPage() {
   const ipServicesQuery = useQuery({
     queryKey: ['/api/devices', deviceId, 'services', 'ip'],
     queryFn: getQueryFn<IPService[]>({ on401: 'throw' }),
-    staleTime: staleTime: 60000,
+    staleTime: 60000,
     refetchInterval: 120000,
     placeholderData: [],
   });
@@ -84,7 +84,7 @@ export default function ServicesPage() {
   const snmpQuery = useQuery({
     queryKey: ['/api/devices', deviceId, 'services', 'snmp'],
     queryFn: getQueryFn<SNMPSettings>({ on401: 'throw' }),
-    staleTime: staleTime: 60000,
+    staleTime: 60000,
     refetchInterval: 120000,
     placeholderData: [],
   });
@@ -93,7 +93,7 @@ export default function ServicesPage() {
   const usersQuery = useQuery({
     queryKey: ['/api/devices', deviceId, 'users'],
     queryFn: getQueryFn<User[]>({ on401: 'throw' }),
-    staleTime: staleTime: 60000,
+    staleTime: 60000,
     refetchInterval: 120000,
     placeholderData: [],
   });
@@ -102,7 +102,7 @@ export default function ServicesPage() {
   const sessionsQuery = useQuery({
     queryKey: ['/api/devices', deviceId, 'users', 'sessions'],
     queryFn: getQueryFn<ActiveSession[]>({ on401: 'throw' }),
-    staleTime: staleTime: 15000,
+    staleTime: 15000,
     refetchInterval: 30000,
     placeholderData: [],
   });
