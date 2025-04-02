@@ -18,13 +18,27 @@ export default function Sidebar({ onClose }: SidebarProps) {
   
   const unreadAlertsCount = alerts.filter(alert => !alert.read).length;
 
-  const navigationItems = [
+  // Dashboard section items
+  const dashboardItems = [
     { href: "#dashboard", icon: "tachometer-alt", label: "Dashboard" },
     { href: "#traffic", icon: "chart-line", label: "Traffic Monitor" },
     { href: "#wifi", icon: "wifi", label: "WiFi Clients" },
     { href: "#system", icon: "server", label: "System Resources" },
     { href: "#logs", icon: "list-alt", label: "Logs" },
     { href: "#alerts", icon: "bell", label: "Alerts", badge: unreadAlertsCount },
+  ];
+  
+  // Additional pages
+  const networkItems = [
+    { href: "/firewall", icon: "shield-alt", label: "Firewall & NAT" },
+    { href: "/dhcp", icon: "network-wired", label: "DHCP" },
+    { href: "/routing", icon: "route", label: "Routing" },
+    { href: "/vpn", icon: "lock", label: "VPN" },
+  ];
+  
+  const systemItems = [
+    { href: "/qos", icon: "tachometer-alt", label: "QoS & Queues" },
+    { href: "/services", icon: "cogs", label: "Services & Users" },
   ];
 
   const handleNavClick = () => {
@@ -79,47 +93,122 @@ export default function Sidebar({ onClose }: SidebarProps) {
           </div>
         </div>
         
-        <nav className="px-2 py-4 space-y-1">
-          {navigationItems.map((item) => (
-            <a
-              key={item.href}
-              href={item.href}
-              onClick={handleNavClick}
-              className={cn(
-                "flex items-center px-3 py-2 text-sm font-medium rounded-md",
-                location === item.href || (location === "/" && item.href === "#dashboard")
-                  ? "bg-primary bg-opacity-10 text-primary dark:text-blue-400"
-                  : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-              )}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                {item.icon === "tachometer-alt" && (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                )}
-                {item.icon === "chart-line" && (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
-                )}
-                {item.icon === "wifi" && (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" />
-                )}
-                {item.icon === "server" && (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" />
-                )}
-                {item.icon === "list-alt" && (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                )}
-                {item.icon === "bell" && (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                )}
-              </svg>
-              {item.label}
-              {item.badge && item.badge > 0 && (
-                <span className="ml-auto bg-red-500 text-white text-xs font-semibold px-2 py-0.5 rounded-full">
-                  {item.badge}
-                </span>
-              )}
-            </a>
-          ))}
+        <nav className="px-2 py-4 space-y-4">
+          <div>
+            <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider px-3 mb-2">
+              Dashboard
+            </h3>
+            <div className="space-y-1">
+              {dashboardItems.map((item) => (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  onClick={handleNavClick}
+                  className={cn(
+                    "flex items-center px-3 py-2 text-sm font-medium rounded-md",
+                    location === item.href || (location === "/" && item.href === "#dashboard")
+                      ? "bg-primary bg-opacity-10 text-primary dark:text-blue-400"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  )}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    {item.icon === "tachometer-alt" && (
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    )}
+                    {item.icon === "chart-line" && (
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+                    )}
+                    {item.icon === "wifi" && (
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" />
+                    )}
+                    {item.icon === "server" && (
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01" />
+                    )}
+                    {item.icon === "list-alt" && (
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    )}
+                    {item.icon === "bell" && (
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                    )}
+                  </svg>
+                  {item.label}
+                  {item.badge && item.badge > 0 && (
+                    <span className="ml-auto bg-red-500 text-white text-xs font-semibold px-2 py-0.5 rounded-full">
+                      {item.badge}
+                    </span>
+                  )}
+                </a>
+              ))}
+            </div>
+          </div>
+          
+          <div>
+            <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider px-3 mb-2">
+              Network
+            </h3>
+            <div className="space-y-1">
+              {networkItems.map((item: { href: string; icon: string; label: string }) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={handleNavClick}
+                  className={cn(
+                    "flex items-center px-3 py-2 text-sm font-medium rounded-md",
+                    location === item.href
+                      ? "bg-primary bg-opacity-10 text-primary dark:text-blue-400"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  )}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    {item.icon === "shield-alt" && (
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                    )}
+                    {item.icon === "network-wired" && (
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-5-3v1m0 9v1" />
+                    )}
+                    {item.icon === "route" && (
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                    )}
+                    {item.icon === "lock" && (
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    )}
+                  </svg>
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+          
+          <div>
+            <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider px-3 mb-2">
+              System
+            </h3>
+            <div className="space-y-1">
+              {systemItems.map((item: { href: string; icon: string; label: string }) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={handleNavClick}
+                  className={cn(
+                    "flex items-center px-3 py-2 text-sm font-medium rounded-md",
+                    location === item.href
+                      ? "bg-primary bg-opacity-10 text-primary dark:text-blue-400"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                  )}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    {item.icon === "tachometer-alt" && (
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    )}
+                    {item.icon === "cogs" && (
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    )}
+                  </svg>
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+          </div>
         </nav>
         
         <div className="px-4 py-4 mt-auto border-t border-gray-200 dark:border-gray-700">

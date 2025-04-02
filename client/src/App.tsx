@@ -9,6 +9,12 @@ import Dashboard from "./pages/Dashboard";
 
 // Lazy-loaded components
 const NotFound = lazy(() => import("./pages/not-found"));
+const FirewallPage = lazy(() => import("./pages/FirewallPage"));
+const DHCPPage = lazy(() => import("./pages/DHCPPage"));
+const RoutingPage = lazy(() => import("./pages/RoutingPage"));
+const VPNPage = lazy(() => import("./pages/VPNPage"));
+const QoSPage = lazy(() => import("./pages/QoSPage"));
+const ServicesPage = lazy(() => import("./pages/ServicesPage"));
 
 function LoadingFallback() {
   return (
@@ -29,6 +35,18 @@ function Router() {
       <Switch>
         <Route path="/" component={Dashboard} />
         <Route path="/login" component={LoginPage} />
+        
+        {/* Trang Quản lý mạng */}
+        <Route path="/firewall" component={FirewallPage} />
+        <Route path="/dhcp" component={DHCPPage} />
+        <Route path="/routing" component={RoutingPage} />
+        <Route path="/vpn" component={VPNPage} />
+        
+        {/* Trang Quản lý hệ thống */}
+        <Route path="/qos" component={QoSPage} />
+        <Route path="/services" component={ServicesPage} />
+        
+        {/* Trang lỗi 404 */}
         <Route component={NotFound} />
       </Switch>
     </Suspense>

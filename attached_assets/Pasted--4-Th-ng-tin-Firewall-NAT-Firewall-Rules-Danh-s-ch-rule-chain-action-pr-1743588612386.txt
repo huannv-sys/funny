@@ -1,0 +1,89 @@
+---
+
+### **4. Thông tin Firewall & NAT**
+- **Firewall Rules**:
+  - Danh sách rule (chain, action, protocol, src/dst IP/port).
+  - Số lượng packets/bytes matched với từng rule.
+- **NAT Rules**:
+  - Port forwarding, masquerade rules.
+  - Thông tin source/destination NAT.
+- **Connection Tracking**:
+  - Danh sách kết nối đang active (TCP/UDP/ICMP).
+  - Trạng thái kết nối (established, closed, time-wait).
+
+---
+
+### **5. Thông tin DHCP**
+- **DHCP Server**:
+  - Pool IP (dải IP cấp phát).
+  - Lease time, DNS server.
+  - Danh sách DHCP leases (MAC, IP, hostname, trạng thái).
+- **DHCP Client** (nếu thiết bị là client):
+  - IP được cấp, gateway, DNS.
+
+---
+
+### **6. Thông tin Routing (Định tuyến)**
+- **Bảng định tuyến** (Routing Table):
+  - Destination, gateway, interface.
+  - Loại route (static, dynamic, BGP/OSPF).
+- **BGP/OSPF** (nếu cấu hình):
+  - Peer status, AS number.
+  - Routes advertised/received.
+
+---
+
+### **7. Thông tin VPN**
+- **PPTP/L2TP/OpenVPN/SSTP**:
+  - Trạng thái kết nối (connected/disconnected).
+  - Client IP, thời gian kết nối.
+- **IPSec**:
+  - Phase1/Phase2 status.
+  - Encryption algorithm, key exchange.
+
+---
+
+### **8. Thông tin QoS & Queues**
+- **Queue Trees**:
+  - Cấu hình bandwidth limits (upload/download).
+  - Parent/child queues, priority.
+- **Simple Queues**:
+  - Target IP/MAC, giới hạn tốc độ.
+  - Packet/byte counts.
+
+---
+
+### **9. Thông tin IP Services**
+- **Danh sách dịch vụ đang chạy**:
+  - SSH, Telnet, Winbox, FTP, WebFig.
+  - Cổng (port), trạng thái (enabled/disabled).
+  - IP được phép truy cập (allow-from).
+
+---
+
+### **10. Thông tin SNMP**
+- **SNMP Settings**:
+  - Community string, trap receivers.
+  - OIDs được phép truy vấn.
+- **MIBs**:
+  - Thông số hệ thống, interface, wireless (qua OID).
+
+---
+
+### **11. Thông tin User & Quản lý**
+- **Danh sách user**:
+  - Tên, nhóm quyền (admin, read-only).
+  - Thời gian đăng nhập cuối cùng.
+- **Active Sessions**:
+  - SSH, Winbox, API sessions.
+
+---
+
+### **12. Thông tin khác**
+- **Scripts**:
+  - Danh sách script được lưu trữ trên thiết bị.
+  - Lịch sử chạy script.
+- **Scheduler**:
+  - Các task định kỳ (ví dụ: reboot hàng tuần).
+- **UPS** (nếu kết nối):
+  - Trạng thái nguồn, pin level.
