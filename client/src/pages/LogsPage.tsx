@@ -186,7 +186,7 @@ export default function LogsPage() {
                   </div>
                 ) : (
                   <ScrollArea className="h-[calc(100vh-300px)] rounded-md border p-4">
-                    {filteredLogs.map((log, index) => (
+                    {[...filteredLogs].reverse().map((log, index) => (
                       <div key={log.id || index}>
                         <div className="flex justify-between items-start mb-1">
                           <div className="flex items-center gap-2">
