@@ -4,7 +4,11 @@ import MobileHeader from "@/components/MobileHeader";
 import { useMediaQuery } from "@/hooks/use-mobile";
 import Footer from "@/components/dashboard/Footer";
 
-export default function AppLayout({ children }: PropsWithChildren) {
+interface AppLayoutProps extends PropsWithChildren {
+  showSidebar?: boolean;
+}
+
+export default function AppLayout({ children, showSidebar = true }: AppLayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const isMobile = useMediaQuery("(max-width: 768px)");
 
@@ -14,21 +18,23 @@ export default function AppLayout({ children }: PropsWithChildren) {
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-dark-bg text-gray-900 dark:text-gray-100">
-      {/* Sidebar - hidden on mobile unless toggled */}
-      <div 
-        className={`${
-          isMobile 
-            ? isSidebarOpen 
-              ? "fixed inset-0 z-40 overflow-hidden" 
-              : "hidden" 
-            : "flex flex-shrink-0 h-screen"
-        }`}
-      >
-        <Sidebar onClose={() => setIsSidebarOpen(false)} />
-      </div>
+      {/* Sidebar - hidden on mobile unless toggled, or when showSidebar is false */}
+      {showSidebar && (
+        <div 
+          className={`${
+            isMobile 
+              ? isSidebarOpen 
+                ? "fixed inset-0 z-40 overflow-hidden" 
+                : "hidden" 
+              : "flex flex-shrink-0 h-screen"
+          }`}
+        >
+          <Sidebar onClose={() => setIsSidebarOpen(false)} />
+        </div>
+      )}
 
-      {/* Mobile Header - visible on small screens */}
-      {isMobile && (
+      {/* Mobile Header - visible on small screens when sidebar is enabled */}
+      {isMobile && showSidebar && (
         <MobileHeader onMenuToggle={toggleSidebar} />
       )}
 

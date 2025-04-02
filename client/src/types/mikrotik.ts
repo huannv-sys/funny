@@ -32,6 +32,10 @@ export interface SystemInfo {
   factorySoftware: string;
   processCount: number;
   lastReboot?: string;
+  // Properties needed for dashboard
+  memoryUsed?: number;
+  diskUsage?: number;
+  connections?: number;
 }
 
 // Traffic information
