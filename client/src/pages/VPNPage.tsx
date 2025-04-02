@@ -83,6 +83,7 @@ function formatBytes(bytes: number) {
 
 // Hàm tạo badge cho loại VPN
 function getVPNTypeBadge(type: string) {
+  if (!type) return <Badge className="bg-gray-500">Unknown</Badge>;
   switch (type.toLowerCase()) {
     case 'pptp':
       return <Badge className="bg-blue-500">PPTP</Badge>;
@@ -101,6 +102,7 @@ function getVPNTypeBadge(type: string) {
 
 // Hàm tạo badge cho trạng thái
 function getStatusBadge(status: string) {
+  if (!status) return <Badge className="bg-gray-500">Unknown</Badge>;
   switch (status.toLowerCase()) {
     case 'connected':
     case 'established':

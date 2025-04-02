@@ -86,7 +86,7 @@ export default function ServicesPage() {
     queryFn: getQueryFn<SNMPSettings>({ on401: 'throw' }),
     staleTime: 60000,
     refetchInterval: 120000,
-    placeholderData: [],
+    placeholderData: {} as SNMPSettings,
   });
 
   // Fetch dữ liệu Users
@@ -143,6 +143,7 @@ export default function ServicesPage() {
 
   // Tạo badge cho service
   function getServiceBadge(service: string) {
+    if (!service) return <Badge className="bg-gray-500">Unknown</Badge>;
     switch(service.toLowerCase()) {
       case 'winbox':
         return <Badge className="bg-blue-500">Winbox</Badge>;
