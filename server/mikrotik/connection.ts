@@ -249,7 +249,10 @@ export async function closeAllConnections(): Promise<void> {
 // Execute a command and handle potential errors
 export async function executeCommand(conn: RouterOSAPI, command: string, params: any[] = []): Promise<any> {
   try {
-    return await conn.write(command, params);
+    console.log(`Executing MikroTik command: ${command} with params:`, params);
+    const result = await conn.write(command, params);
+    console.log(`Command ${command} result:`, JSON.stringify(result).substring(0, 200) + (JSON.stringify(result).length > 200 ? '...' : ''));
+    return result;
   } catch (error) {
     console.error(`Error executing command '${command}':`, error);
     throw new Error(`Failed to execute RouterOS command: ${(error as Error).message}`);
