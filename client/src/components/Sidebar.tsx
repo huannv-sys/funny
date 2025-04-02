@@ -21,6 +21,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
   // Dashboard section items
   const dashboardItems = [
     { href: "/", icon: "home", label: "Trang chủ" },
+    { href: "/multi-dashboard", icon: "th-large", label: "Đa thiết bị" },
     { href: "/#dashboard", icon: "tachometer-alt", label: "Dashboard" },
     { href: "/#traffic", icon: "chart-line", label: "Traffic Monitor" },
     { href: "/#wifi", icon: "wifi", label: "WiFi Clients" },
@@ -138,6 +139,9 @@ export default function Sidebar({ onClose }: SidebarProps) {
                     )}
                     {item.icon === "bell" && (
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                    )}
+                    {item.icon === "th-large" && (
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                     )}
                   </svg>
                   {item.label}

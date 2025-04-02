@@ -17,6 +17,7 @@ const QoSPage = lazy(() => import("./pages/QoSPage"));
 const ServicesPage = lazy(() => import("./pages/ServicesPage"));
 const HomePage = lazy(() => import("./pages/HomePage"));
 const AlertDetailPage = lazy(() => import("./pages/AlertDetailPage"));
+const MultiDeviceDashboard = lazy(() => import("./pages/MultiDeviceDashboard"));
 
 function LoadingFallback() {
   return (
@@ -38,6 +39,7 @@ function Router() {
         <Route path="/" component={HomePage} />
         <Route path="/login" component={LoginPage} />
         <Route path="/dashboard/:id" component={Dashboard} />
+        <Route path="/multi-dashboard" component={MultiDeviceDashboard} />
         
         {/* Trang Quản lý mạng */}
         <Route path="/firewall" component={FirewallPage} />

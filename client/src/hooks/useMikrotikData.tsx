@@ -22,7 +22,10 @@ import { LogsProvider } from './useLogsData';
 type DeviceContextType = {
   devices: MikrotikDevice[];
   selectedDevice: MikrotikDevice | null;
+  selectedDevices: MikrotikDevice[];
   selectDevice: (device: MikrotikDevice) => void;
+  selectMultipleDevices: (devices: MikrotikDevice[]) => void;
+  toggleDeviceSelection: (device: MikrotikDevice) => void;
   refreshDevices: () => Promise<void>;
   loading: boolean;
 };
@@ -72,7 +75,10 @@ export const MikrotikDataContext = createContext<MikrotikDataContextType>({
 export const DeviceContext = createContext<DeviceContextType>({
   devices: [],
   selectedDevice: null,
+  selectedDevices: [],
   selectDevice: () => {},
+  selectMultipleDevices: () => {},
+  toggleDeviceSelection: () => {},
   refreshDevices: async () => {},
   loading: false,
 });
@@ -153,6 +159,7 @@ export function MikrotikDataProvider({ children }: { children: ReactNode }) {
 export function DeviceProvider({ children }: { children: ReactNode }) {
   const [devices, setDevices] = useState<MikrotikDevice[]>([]);
   const [selectedDevice, setSelectedDevice] = useState<MikrotikDevice | null>(null);
+  const [selectedDevices, setSelectedDevices] = useState<MikrotikDevice[]>([]);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
@@ -181,6 +188,22 @@ export function DeviceProvider({ children }: { children: ReactNode }) {
     setSelectedDevice(device);
     localStorage.setItem('selectedDeviceId', device.id.toString());
   }, []);
+  
+  const selectMultipleDevices = useCallback((devices: MikrotikDevice[]) => {
+    setSelectedDevices(devices);
+    localStorage.setItem('selectedDeviceIds', JSON.stringify(devices.map(d => d.id)));
+  }, []);
+  
+  const toggleDeviceSelection = useCallback((device: MikrotikDevice) => {
+    setSelectedDevices(prev => {
+      const isSelected = prev.some(d => d.id === device.id);
+      if (isSelected) {
+        return prev.filter(d => d.id !== device.id);
+      } else {
+        return [...prev, device];
+      }
+    });
+  }, []);
 
   useEffect(() => {
     refreshDevices();
@@ -199,7 +222,10 @@ export function DeviceProvider({ children }: { children: ReactNode }) {
       value={{
         devices,
         selectedDevice,
+        selectedDevices,
         selectDevice,
+        selectMultipleDevices,
+        toggleDeviceSelection,
         refreshDevices,
         loading
       }}
