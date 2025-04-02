@@ -20,12 +20,12 @@ export default function Sidebar({ onClose }: SidebarProps) {
 
   // Dashboard section items
   const dashboardItems = [
-    { href: "#dashboard", icon: "tachometer-alt", label: "Dashboard" },
-    { href: "#traffic", icon: "chart-line", label: "Traffic Monitor" },
-    { href: "#wifi", icon: "wifi", label: "WiFi Clients" },
-    { href: "#system", icon: "server", label: "System Resources" },
-    { href: "#logs", icon: "list-alt", label: "Logs" },
-    { href: "#alerts", icon: "bell", label: "Alerts", badge: unreadAlertsCount },
+    { href: "/#dashboard", icon: "tachometer-alt", label: "Dashboard" },
+    { href: "/#traffic", icon: "chart-line", label: "Traffic Monitor" },
+    { href: "/#wifi", icon: "wifi", label: "WiFi Clients" },
+    { href: "/#system", icon: "server", label: "System Resources" },
+    { href: "/#logs", icon: "list-alt", label: "Logs" },
+    { href: "/#alerts", icon: "bell", label: "Alerts", badge: unreadAlertsCount },
   ];
   
   // Additional pages
@@ -109,7 +109,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
                   onClick={handleNavClick}
                   className={cn(
                     "flex items-center px-3 py-2 text-sm font-medium rounded-md",
-                    location === item.href || (location === "/" && item.href === "#dashboard")
+                    location === item.href || (location === "/" && item.href === "/#dashboard")
                       ? "bg-primary bg-opacity-10 text-primary dark:text-blue-400"
                       : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                   )}

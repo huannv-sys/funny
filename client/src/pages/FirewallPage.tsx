@@ -74,7 +74,6 @@ function formatBytes(bytes: number) {
 
 export default function FirewallPage() {
   const [deviceId] = useState<number>(1);
-  const [activeTab, setActiveTab] = useState("filter-rules");
 
   // Fetch dữ liệu Filter Rules
   const filterRulesQuery = useQuery({
@@ -121,6 +120,8 @@ export default function FirewallPage() {
 
   // Tạo badge cho chain
   function getChainBadge(chain: string) {
+    if (!chain) return <Badge className="bg-gray-500">Unknown</Badge>;
+    
     switch(chain.toLowerCase()) {
       case 'input':
         return <Badge className="bg-blue-500">Input</Badge>;
@@ -139,6 +140,8 @@ export default function FirewallPage() {
 
   // Tạo badge cho action
   function getActionBadge(action: string) {
+    if (!action) return <Badge className="bg-gray-500">Unknown</Badge>;
+    
     switch(action.toLowerCase()) {
       case 'accept':
         return <Badge className="bg-green-500">Accept</Badge>;
@@ -179,6 +182,8 @@ export default function FirewallPage() {
 
   // Tạo badge cho connection state
   function getStateBadge(state: string) {
+    if (!state) return <Badge className="bg-gray-500">Unknown</Badge>;
+    
     switch(state.toLowerCase()) {
       case 'established':
         return <Badge className="bg-green-500">Established</Badge>;
@@ -200,8 +205,8 @@ export default function FirewallPage() {
       <div className="container mx-auto py-6">
         <h1 className="text-2xl font-bold mb-6">Quản lý Firewall & NAT</h1>
         
-        <Tabs defaultValue="filter-rules" value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3">
+        <Tabs defaultValue="filter-rules" className="w-full">
+          <TabsList className="w-full grid grid-cols-3 mb-4">
             <TabsTrigger value="filter-rules">Filter Rules</TabsTrigger>
             <TabsTrigger value="nat-rules">NAT Rules</TabsTrigger>
             <TabsTrigger value="connections">Connections</TabsTrigger>

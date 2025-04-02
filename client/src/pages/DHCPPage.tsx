@@ -115,8 +115,8 @@ export default function DHCPPage() {
       <div className="container mx-auto py-6">
         <h1 className="text-2xl font-bold mb-6">Quản lý DHCP</h1>
         
-        <Tabs defaultValue="servers" value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3">
+        <Tabs defaultValue="servers" className="w-full">
+          <TabsList className="w-full grid grid-cols-3 mb-4">
             <TabsTrigger value="servers">DHCP Server</TabsTrigger>
             <TabsTrigger value="leases">DHCP Leases</TabsTrigger>
             <TabsTrigger value="clients">DHCP Client</TabsTrigger>
@@ -271,9 +271,13 @@ export default function DHCPPage() {
                           <TableRow key={client.id}>
                             <TableCell>{client.interface}</TableCell>
                             <TableCell>
-                              <Badge className={client.status === 'bound' ? 'bg-green-500' : 'bg-gray-500'}>
-                                {client.status}
-                              </Badge>
+                              {client.status ? (
+                                <Badge className={client.status.toLowerCase() === 'bound' ? 'bg-green-500' : 'bg-gray-500'}>
+                                  {client.status}
+                                </Badge>
+                              ) : (
+                                <Badge className="bg-gray-500">Unknown</Badge>
+                              )}
                             </TableCell>
                             <TableCell>{client.address}</TableCell>
                             <TableCell>{client.gateway}</TableCell>
