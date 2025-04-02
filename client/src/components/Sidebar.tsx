@@ -107,7 +107,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
             </h3>
             <div className="space-y-1">
               {dashboardItems.map((item) => (
-                <a
+                <Link
                   key={item.href}
                   href={item.href}
                   onClick={handleNavClick}
@@ -150,7 +150,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
                       {item.badge}
                     </span>
                   )}
-                </a>
+                </Link>
               ))}
             </div>
           </div>
