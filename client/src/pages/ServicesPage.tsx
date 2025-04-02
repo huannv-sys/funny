@@ -128,6 +128,7 @@ export default function ServicesPage() {
 
   // Tạo badge cho group
   function getGroupBadge(group: string) {
+    if (!group) return <Badge className="bg-gray-500">Unknown</Badge>;
     switch(group.toLowerCase()) {
       case 'admin':
       case 'full':
