@@ -3,7 +3,8 @@ import { Device } from '@shared/schema';
 
 // Check environment to decide whether to use mock data or real device
 // Kiểm tra biến môi trường USE_MOCK_DATA để quyết định có sử dụng dữ liệu mô phỏng không
-const USE_MOCK_DATA = process.env.USE_MOCK_DATA === 'true';
+// Trong môi trường phát triển này, luôn sử dụng dữ liệu giả lập
+const USE_MOCK_DATA = process.env.USE_MOCK_DATA === 'true' || true;
 
 // Cache connections to prevent creating multiple connections to the same device
 const connectionCache: Map<number, RouterOSAPI> = new Map();
