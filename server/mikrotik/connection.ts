@@ -3,8 +3,8 @@ import { Device } from '@shared/schema';
 
 // Check environment to decide whether to use mock data or real device
 // Kiểm tra biến môi trường USE_MOCK_DATA để quyết định có sử dụng dữ liệu mô phỏng không
-// Trong môi trường phát triển này, luôn sử dụng dữ liệu giả lập
-const USE_MOCK_DATA = process.env.USE_MOCK_DATA === 'true' || true;
+// Cho phép kết nối đến thiết bị thực tế
+const USE_MOCK_DATA = false;
 
 // Cache connections to prevent creating multiple connections to the same device
 const connectionCache: Map<number, RouterOSAPI> = new Map();
@@ -186,7 +186,8 @@ export async function createConnection(device: Device): Promise<RouterOSAPI> {
   }
 
   // Check if we should use mock data
-  if (USE_MOCK_DATA) {
+  // Sử dụng dữ liệu giả lập chỉ cho thiết bị có ID = 1
+  if (USE_MOCK_DATA || device.id === 1) {
     console.log(`[MOCK] Creating mock connection for device ${device.id} (${device.name})`);
     const mockConn = new MockRouterOSAPI(device.id, device.name);
     connectionCache.set(device.id, mockConn as unknown as RouterOSAPI);

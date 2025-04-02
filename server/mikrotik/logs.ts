@@ -10,9 +10,8 @@ import { executeCommand } from "./connection";
  */
 export async function getLogs(conn: RouterOSAPI, limit = 100): Promise<LogEntry[]> {
   try {
-    const response = await executeCommand(conn, '/log/print', [
-      '=count=' + limit
-    ]);
+    // Fetch logs without using count parameter which isn't supported in this RouterOS API version
+    const response = await executeCommand(conn, '/log/print', []);
 
     return response.map((entry: any, index: number) => ({
       id: entry['.id'] || `log-${index}`,
@@ -50,9 +49,8 @@ export async function getFilteredLogs(
     });
 
     // If multiple topics, we need to combine them with OR (?)
-    let params = [
-      '=count=' + limit,
-    ];
+    // Don't use count parameter as it's not supported in this RouterOS API version
+    let params: string[] = [];
 
     // Add topic filter
     if (topicFilters.length === 1) {
