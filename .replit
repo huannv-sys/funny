@@ -34,7 +34,7 @@ task = "packager.installForAll"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npx tsx server/index.ts"
+args = "export USE_MOCK_DATA=false && npx tsx server/index.ts"
 waitForPort = 5000
 
 [[ports]]
