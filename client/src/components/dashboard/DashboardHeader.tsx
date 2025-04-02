@@ -2,13 +2,16 @@ import { ArrowPathIcon, CalendarIcon, ChevronDownIcon } from "@heroicons/react/2
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import DeviceSelector from "./DeviceSelector";
+import MultiDeviceSelector from "./MultiDeviceSelector";
 
 interface DashboardHeaderProps {
   isLiveEnabled: boolean;
   setIsLiveEnabled: (value: boolean) => void;
+  showMultiDeviceSelector?: boolean;
 }
 
-export default function DashboardHeader({ isLiveEnabled, setIsLiveEnabled }: DashboardHeaderProps) {
+export default function DashboardHeader({ isLiveEnabled, setIsLiveEnabled, showMultiDeviceSelector = false }: DashboardHeaderProps) {
   const refreshData = () => {
     // Trigger a manual refresh of all data
     window.location.reload();
@@ -16,8 +19,11 @@ export default function DashboardHeader({ isLiveEnabled, setIsLiveEnabled }: Das
 
   return (
     <div className="pb-5 border-b border-gray-200 dark:border-gray-700 sm:flex sm:items-center sm:justify-between">
-      <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">Dashboard Overview</h3>
-      <div className="mt-3 flex sm:mt-0 sm:ml-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+        <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">Dashboard Overview</h3>
+        {showMultiDeviceSelector ? <MultiDeviceSelector /> : <DeviceSelector />}
+      </div>
+      <div className="mt-3 flex flex-wrap gap-2 sm:mt-0 sm:ml-4">
         <div className="flex items-center">
           <span className="mr-2 text-sm text-gray-500 dark:text-gray-400">Live updates:</span>
           <div className="flex items-center space-x-2">

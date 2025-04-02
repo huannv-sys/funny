@@ -30,7 +30,7 @@ export default function Dashboard() {
               <AlertsProvider>
                 <LogsProvider>
                   <AppLayout>
-                    <DashboardHeader isLiveEnabled={isLiveEnabled} setIsLiveEnabled={setIsLiveEnabled} />
+                    <DashboardHeader isLiveEnabled={isLiveEnabled} setIsLiveEnabled={setIsLiveEnabled} showMultiDeviceSelector={false} />
                     <StatusCards />
                     
                     <TrafficSection />

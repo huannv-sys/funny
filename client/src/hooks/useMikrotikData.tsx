@@ -208,6 +208,7 @@ export function DeviceProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     refreshDevices();
     
+    // Tải thiết bị được chọn khi load trang
     const savedDeviceId = localStorage.getItem('selectedDeviceId');
     if (savedDeviceId && devices.length > 0) {
       const device = devices.find(d => d.id.toString() === savedDeviceId);
@@ -215,7 +216,21 @@ export function DeviceProvider({ children }: { children: ReactNode }) {
         setSelectedDevice(device);
       }
     }
-  }, [refreshDevices]);
+    
+    // Tải danh sách các thiết bị đã chọn để so sánh
+    const savedMultiDeviceIds = localStorage.getItem('selectedDeviceIds');
+    if (savedMultiDeviceIds && devices.length > 0) {
+      try {
+        const deviceIds = JSON.parse(savedMultiDeviceIds) as number[];
+        const selectedDevs = devices.filter(d => deviceIds.includes(d.id));
+        if (selectedDevs.length > 0) {
+          setSelectedDevices(selectedDevs);
+        }
+      } catch (e) {
+        console.error('Failed to parse selected device IDs from localStorage');
+      }
+    }
+  }, [refreshDevices, devices]);
 
   return (
     <DeviceContext.Provider 
