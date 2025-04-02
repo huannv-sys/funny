@@ -139,32 +139,36 @@ export default function QoSPage() {
   const simpleQueuesQuery = useQuery({
     queryKey: ['/api/devices', deviceId, 'queues', 'simple'],
     queryFn: getQueryFn<SimpleQueue[]>({ on401: 'throw' }),
-    staleTime: 15000,
+    staleTime: staleTime: 15000,
     refetchInterval: 30000,
+    placeholderData: [],
   });
 
   // Fetch dữ liệu Queue Trees
   const queueTreesQuery = useQuery({
     queryKey: ['/api/devices', deviceId, 'queues', 'tree'],
     queryFn: getQueryFn<QueueTree[]>({ on401: 'throw' }),
-    staleTime: 15000,
+    staleTime: staleTime: 15000,
     refetchInterval: 30000,
+    placeholderData: [],
   });
 
   // Fetch dữ liệu Queue Types
   const queueTypesQuery = useQuery({
     queryKey: ['/api/devices', deviceId, 'queues', 'types'],
     queryFn: getQueryFn<QueueType[]>({ on401: 'throw' }),
-    staleTime: 60000,
+    staleTime: staleTime: 60000,
     refetchInterval: 120000,
+    placeholderData: [],
   });
 
   // Fetch dữ liệu Mangle Rules
   const mangleRulesQuery = useQuery({
     queryKey: ['/api/devices', deviceId, 'firewall', 'mangle'],
     queryFn: getQueryFn<MangleRule[]>({ on401: 'throw' }),
-    staleTime: 30000,
+    staleTime: staleTime: 30000,
     refetchInterval: 60000,
+    placeholderData: [],
   });
 
   // Tạo loading fallback component

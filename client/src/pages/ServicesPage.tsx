@@ -75,32 +75,36 @@ export default function ServicesPage() {
   const ipServicesQuery = useQuery({
     queryKey: ['/api/devices', deviceId, 'services', 'ip'],
     queryFn: getQueryFn<IPService[]>({ on401: 'throw' }),
-    staleTime: 60000,
+    staleTime: staleTime: 60000,
     refetchInterval: 120000,
+    placeholderData: [],
   });
 
   // Fetch dữ liệu SNMP
   const snmpQuery = useQuery({
     queryKey: ['/api/devices', deviceId, 'services', 'snmp'],
     queryFn: getQueryFn<SNMPSettings>({ on401: 'throw' }),
-    staleTime: 60000,
+    staleTime: staleTime: 60000,
     refetchInterval: 120000,
+    placeholderData: [],
   });
 
   // Fetch dữ liệu Users
   const usersQuery = useQuery({
     queryKey: ['/api/devices', deviceId, 'users'],
     queryFn: getQueryFn<User[]>({ on401: 'throw' }),
-    staleTime: 60000,
+    staleTime: staleTime: 60000,
     refetchInterval: 120000,
+    placeholderData: [],
   });
 
   // Fetch dữ liệu Active Sessions
   const sessionsQuery = useQuery({
     queryKey: ['/api/devices', deviceId, 'users', 'sessions'],
     queryFn: getQueryFn<ActiveSession[]>({ on401: 'throw' }),
-    staleTime: 15000,
+    staleTime: staleTime: 15000,
     refetchInterval: 30000,
+    placeholderData: [],
   });
 
   // Tạo loading fallback component

@@ -85,6 +85,7 @@ export default function RoutingPage() {
     queryFn: getQueryFn<Route[]>({ on401: 'throw' }),
     staleTime: 30000,
     refetchInterval: 60000,
+    placeholderData: [],
   });
 
   // Fetch dữ liệu BGP Peers
@@ -93,6 +94,7 @@ export default function RoutingPage() {
     queryFn: getQueryFn<BGPPeer[]>({ on401: 'throw' }),
     staleTime: 15000, // 15 seconds
     refetchInterval: 30000, // 30 seconds
+    placeholderData: [],
   });
 
   // Fetch dữ liệu OSPF Interfaces
@@ -101,6 +103,7 @@ export default function RoutingPage() {
     queryFn: getQueryFn<OSPFInterface[]>({ on401: 'throw' }),
     staleTime: 30000,
     refetchInterval: 60000,
+    placeholderData: [],
   });
 
   // Fetch dữ liệu OSPF Neighbors
@@ -109,6 +112,7 @@ export default function RoutingPage() {
     queryFn: getQueryFn<OSPFNeighbor[]>({ on401: 'throw' }),
     staleTime: 15000,
     refetchInterval: 30000,
+    placeholderData: [],
   });
 
   // Tạo loading fallback component
@@ -145,6 +149,8 @@ export default function RoutingPage() {
 
   // Get BGP/OSPF state badge
   function getStateBadge(state: string) {
+    if (!state) return <Badge className="bg-gray-500">Không xác định</Badge>;
+    
     switch (state.toLowerCase()) {
       case 'established':
       case 'full':
