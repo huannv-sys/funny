@@ -65,16 +65,22 @@ function KioskDashboardContent() {
   // Add windows for all selected devices
   const addAllSelectedWindows = useCallback(() => {
     console.log("Adding windows for selected devices:", selectedDevices);
-    if (selectedDevices.length === 0) {
-      console.log("No devices selected");
-      return;
-    }
     
-    selectedDevices.forEach(device => {
-      console.log("Adding window for device:", device.id, device.name);
-      addWindow(device);
-    });
-  }, [selectedDevices, addWindow]);
+    // Nếu có thiết bị đã chọn, sử dụng chúng
+    if (selectedDevices.length > 0) {
+      selectedDevices.forEach(device => {
+        console.log("Adding window for device:", device.id, device.name);
+        addWindow(device);
+      });
+    } 
+    // Nếu không có thiết bị nào được chọn, tự động thêm thiết bị đầu tiên trong danh sách
+    else if (devices.length > 0) {
+      console.log("No devices selected, automatically adding first device:", devices[0]);
+      addWindow(devices[0]);
+    } else {
+      console.log("No devices available to add");
+    }
+  }, [selectedDevices, devices, addWindow]);
 
   // Handle window position update
   const updateWindowPosition = useCallback((windowId: string, position: { x: number; y: number }) => {
@@ -184,7 +190,7 @@ function KioskDashboardContent() {
             onClick={addAllSelectedWindows}
             className="flex items-center"
           >
-            Add Selected Devices
+            {selectedDevices.length > 0 ? `Add Selected Devices (${selectedDevices.length})` : "Add Device Window"}
           </Button>
         </div>
       </div>
@@ -209,10 +215,10 @@ function KioskDashboardContent() {
               Welcome to Kiosk Dashboard mode. This interface allows you to monitor multiple devices in separate draggable windows.
             </p>
             <ol className="list-decimal pl-5 space-y-2">
-              <li>Select one or more devices from the panel above</li>
-              <li>Click the "Add Selected Devices" button to create monitoring windows</li>
-              <li>Drag windows to position them as needed</li>
-              <li>Toggle fullscreen mode for maximum viewing area</li>
+              <li>Chọn một hoặc nhiều thiết bị từ danh sách phía trên (không bắt buộc)</li>
+              <li>Nhấn nút "Add Device Window" để tạo cửa sổ giám sát</li>
+              <li>Kéo thả các cửa sổ để sắp xếp vị trí theo nhu cầu</li>
+              <li>Sử dụng chế độ toàn màn hình để tối đa hóa không gian hiển thị</li>
             </ol>
           </CardContent>
         </Card>
