@@ -8,6 +8,100 @@ const USE_MOCK_DATA = true;
 const connectionCache: Map<number, RouterOSAPI> = new Map();
 
 // Create a connection to a MikroTik device
+// Custom Mock API class that simulates RouterOSAPI
+class MockRouterOSAPI extends RouterOSAPI {
+  deviceId: number;
+  deviceName: string;
+  
+  constructor(deviceId: number, deviceName: string) {
+    super({ host: '', user: '', password: '' });
+    this.deviceId = deviceId;
+    this.deviceName = deviceName;
+  }
+  
+  // Override connect method to simulate successful connection
+  async connect() {
+    console.log(`[MOCK] Connected to device ${this.deviceId} (${this.deviceName})`);
+    return true;
+  }
+  
+  // Override close method
+  async close() {
+    console.log(`[MOCK] Closed connection to device ${this.deviceId} (${this.deviceName})`);
+    return true;
+  }
+  
+  // Override write method to return mock data based on command
+  async write(command: string, params: any[] = []) {
+    console.log(`[MOCK] Executing command: ${command}`);
+    
+    // Return different mock data based on the command
+    if (command === '/system/resource/print') {
+      return [
+        {
+          uptime: '259200',  // 3 days
+          version: '6.49.7',
+          'free-memory': (256 * 1024 * 1024).toString(), // 256MB
+          'total-memory': (512 * 1024 * 1024).toString(), // 512MB
+          cpu: '3',
+          'cpu-count': '2',
+          'cpu-frequency': '800',
+          'cpu-load': '15',
+          'free-hdd-space': (100 * 1024 * 1024).toString(), // 100MB
+          'total-hdd-space': (128 * 1024 * 1024).toString(), // 128MB
+          architecture: 'arm',
+          'board-name': 'hAP ac²',
+          platform: 'MikroTik',
+        }
+      ];
+    } else if (command === '/system/identity/print') {
+      return [{ name: this.deviceName }];
+    } else if (command === '/interface/print') {
+      return [
+        { name: 'ether1', type: 'ether', 'mac-address': '00:0C:29:45:67:01', running: 'true', disabled: 'false' },
+        { name: 'ether2', type: 'ether', 'mac-address': '00:0C:29:45:67:02', running: 'true', disabled: 'false' },
+        { name: 'wlan1', type: 'wlan', 'mac-address': '00:0C:29:45:67:03', running: 'true', disabled: 'false' },
+      ];
+    } else if (command.includes('/interface/monitor-traffic')) {
+      // Simulate traffic data with random values
+      return [
+        {
+          'rx-bits-per-second': Math.floor(Math.random() * 10000000).toString(),
+          'tx-bits-per-second': Math.floor(Math.random() * 5000000).toString(),
+          'rx-packets-per-second': Math.floor(Math.random() * 1000).toString(),
+          'tx-packets-per-second': Math.floor(Math.random() * 500).toString(),
+        }
+      ];
+    } else if (command === '/interface/wireless/registration-table/print') {
+      return [
+        { 
+          '.id': '*1', 
+          interface: 'wlan1', 
+          'mac-address': 'DC:FB:48:79:12:34', 
+          'signal-strength': '-65',
+          'signal-to-noise': '40',
+          'tx-rate': '87Mbps',
+          'rx-rate': '130Mbps',
+          uptime: '6h32m10s'
+        },
+        { 
+          '.id': '*2', 
+          interface: 'wlan1', 
+          'mac-address': '00:11:22:33:44:55', 
+          'signal-strength': '-72',
+          'signal-to-noise': '32',
+          'tx-rate': '54Mbps',
+          'rx-rate': '65Mbps',
+          uptime: '2h17m42s'
+        }
+      ];
+    }
+    
+    // Default response for any other command
+    return [];
+  }
+}
+
 export async function createConnection(device: Device): Promise<RouterOSAPI> {
   // Check if connection already exists in cache
   const cachedConnection = connectionCache.get(device.id);
@@ -23,7 +117,15 @@ export async function createConnection(device: Device): Promise<RouterOSAPI> {
     }
   }
 
-  // Create new connection
+  // Check if we should use mock data
+  if (USE_MOCK_DATA) {
+    console.log(`[MOCK] Creating mock connection for device ${device.id} (${device.name})`);
+    const mockConn = new MockRouterOSAPI(device.id, device.name);
+    connectionCache.set(device.id, mockConn as unknown as RouterOSAPI);
+    return mockConn as unknown as RouterOSAPI;
+  }
+
+  // Create new connection to real device
   const conn = new RouterOSAPI({
     host: device.ipAddress,
     user: device.username,
@@ -42,6 +144,16 @@ export async function createConnection(device: Device): Promise<RouterOSAPI> {
     console.log(`Connected to device ${device.id} (${device.name})`);
     return conn;
   } catch (error) {
+    console.error(`Failed to connect to MikroTik device: ${(error as Error).message}`);
+    
+    // If real connection fails, fall back to mock for development
+    if (USE_MOCK_DATA) {
+      console.log(`[MOCK] Falling back to mock data for device ${device.id} (${device.name})`);
+      const mockConn = new MockRouterOSAPI(device.id, device.name);
+      connectionCache.set(device.id, mockConn as unknown as RouterOSAPI);
+      return mockConn as unknown as RouterOSAPI;
+    }
+    
     throw new Error(`Failed to connect to MikroTik device: ${(error as Error).message}`);
   }
 }

@@ -134,13 +134,17 @@ export function MikrotikDataProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(interval);
   }, [toast]);
 
-  return React.createElement(MikrotikDataContext.Provider, {
-    value: {
-      isConnected,
-      lastUpdated,
-      refreshAllData
-    }
-  }, children);
+  return (
+    <MikrotikDataContext.Provider 
+      value={{
+        isConnected,
+        lastUpdated,
+        refreshAllData
+      }}
+    >
+      {children}
+    </MikrotikDataContext.Provider>
+  );
 }
 
 export function DeviceProvider({ children }: { children: ReactNode }) {
@@ -290,15 +294,19 @@ export function TrafficProvider({ children }: { children: ReactNode }) {
     }
   }, [selectedDevice, isLiveEnabled, wsState.connected]);
 
-  return React.createElement(TrafficContext.Provider, {
-    value: {
-      interfaces,
-      interfaceTraffic,
-      trafficSummary,
-      getInterfaceTraffic,
-      getInterfaces
-    }
-  }, children);
+  return (
+    <TrafficContext.Provider
+      value={{
+        interfaces,
+        interfaceTraffic,
+        trafficSummary,
+        getInterfaceTraffic,
+        getInterfaces
+      }}
+    >
+      {children}
+    </TrafficContext.Provider>
+  );
 }
 
 export function WiFiProvider({ children }: { children: ReactNode }) {
@@ -358,13 +366,17 @@ export function WiFiProvider({ children }: { children: ReactNode }) {
     }
   }, [selectedDevice, isLiveEnabled, wsState.connected, getWifiClients]);
 
-  return React.createElement(WiFiContext.Provider, {
-    value: {
-      wifiClients,
-      interfaces,
-      getWifiClients
-    }
-  }, children);
+  return (
+    <WiFiContext.Provider
+      value={{
+        wifiClients,
+        interfaces,
+        getWifiClients
+      }}
+    >
+      {children}
+    </WiFiContext.Provider>
+  );
 }
 
 export function SystemProvider({ children }: { children: ReactNode }) {
@@ -452,15 +464,19 @@ export function SystemProvider({ children }: { children: ReactNode }) {
     }
   }, [selectedDevice, isLiveEnabled, wsState.connected, getSystemInfo, getStorageInfo]);
 
-  return React.createElement(SystemContext.Provider, {
-    value: {
-      systemInfo,
-      storageInfo,
-      fileList,
-      getSystemInfo,
-      getStorageInfo
-    }
-  }, children);
+  return (
+    <SystemContext.Provider
+      value={{
+        systemInfo,
+        storageInfo,
+        fileList,
+        getSystemInfo,
+        getStorageInfo
+      }}
+    >
+      {children}
+    </SystemContext.Provider>
+  );
 }
 
 export function AlertsProvider({ children }: { children: ReactNode }) {
@@ -551,12 +567,16 @@ export function AlertsProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(interval);
   }, [selectedDevice, isLiveEnabled, wsState.connected, getAlerts]);
 
-  return React.createElement(AlertsContext.Provider, {
-    value: {
-      alerts,
-      markAlertAsRead,
-      markAllAlertsAsRead,
-      getAlerts
-    }
-  }, children);
+  return (
+    <AlertsContext.Provider
+      value={{
+        alerts,
+        markAlertAsRead,
+        markAllAlertsAsRead,
+        getAlerts
+      }}
+    >
+      {children}
+    </AlertsContext.Provider>
+  );
 }

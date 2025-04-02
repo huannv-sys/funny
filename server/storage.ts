@@ -22,7 +22,7 @@ export class MemStorage implements IStorage {
       username: 'admin',
       password: 'admin123',
       email: 'admin@example.com',
-    });
+    }).catch(err => console.error('Error creating default user:', err));
   }
 
   async getUser(id: number): Promise<User | undefined> {
@@ -37,7 +37,12 @@ export class MemStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.currentId++;
-    const user: User = { ...insertUser, id };
+    const user: User = { 
+      ...insertUser, 
+      id,
+      email: insertUser.email || null,
+      lastLogin: null 
+    };
     this.users.set(id, user);
     return user;
   }
