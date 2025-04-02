@@ -64,7 +64,14 @@ function KioskDashboardContent() {
 
   // Add windows for all selected devices
   const addAllSelectedWindows = useCallback(() => {
+    console.log("Adding windows for selected devices:", selectedDevices);
+    if (selectedDevices.length === 0) {
+      console.log("No devices selected");
+      return;
+    }
+    
     selectedDevices.forEach(device => {
+      console.log("Adding window for device:", device.id, device.name);
       addWindow(device);
     });
   }, [selectedDevices, addWindow]);
