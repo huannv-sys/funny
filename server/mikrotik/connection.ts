@@ -2,7 +2,8 @@ import { RouterOSAPI } from 'routeros-api';
 import { Device } from '@shared/schema';
 
 // Check environment to decide whether to use mock data or real device
-const USE_MOCK_DATA = process.env.USE_MOCK_DATA === 'true' || false;
+// Nếu biến môi trường USE_MOCK_DATA không được đặt, sử dụng true để mặc định sử dụng dữ liệu mô phỏng
+const USE_MOCK_DATA = process.env.USE_MOCK_DATA !== 'false';
 
 // Cache connections to prevent creating multiple connections to the same device
 const connectionCache: Map<number, RouterOSAPI> = new Map();

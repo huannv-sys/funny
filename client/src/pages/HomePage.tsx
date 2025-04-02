@@ -77,7 +77,13 @@ export default function HomePage() {
   // Xử lý thêm thiết bị mới
   const handleAddDevice = async () => {
     try {
-      const newDevice = await apiRequest('/api/devices', 'POST', formValues);
+      const response = await apiRequest(
+        'POST',  // Method
+        '/api/devices',  // URL
+        formValues  // Data
+      );
+      
+      const newDevice = await response.json();
       
       // Reset form và đóng dialog
       setFormValues({
