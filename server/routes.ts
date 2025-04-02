@@ -20,12 +20,12 @@ function getEnvMikrotikDevice(): Device | null {
   const host = process.env.MIKROTIK_HOST;
   const user = process.env.MIKROTIK_USER;
   const pass = process.env.MIKROTIK_PASS;
-  
+
   if (!host || !user || !pass) {
     console.log('Missing MikroTik environment variables. Using mock data.');
     return null;
   }
-  
+
   return {
     id: 1,
     name: 'MikroTik Router',
@@ -42,12 +42,12 @@ function getEnvMikrotikDevice(): Device | null {
 // Function to initialize the default MikroTik device if needed
 async function initializeDefaultDevice() {
   const devices = await storage.getDevices();
-  
+
   // If we have no devices yet, create a default one
   if (devices.length === 0) {
     // Check for environment variables for real device
     const envDevice = getEnvMikrotikDevice();
-    
+
     if (envDevice) {
       console.log("Using MikroTik device from environment variables");
       await storage.createDevice({
@@ -77,7 +77,7 @@ async function initializeDefaultDevice() {
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
-  
+
   // Initialize default device if needed
   await initializeDefaultDevice();
 
@@ -105,7 +105,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         const data = JSON.parse(message.toString());
         console.log(`Received message from ${clientId}:`, data);
-        
+
         // Handle subscription/unsubscription requests
         if (data.type === 'subscribe') {
           // Handle subscription request (logs, traffic, etc.)
@@ -143,14 +143,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Loại dữ liệu
   type DataCategory = 'static' | 'dynamic' | 'onDemand';
-  
+
   // Cấu hình mặc định
   const defaultRefreshRates: Record<DataCategory, number> = {
     static: 3600000,    // 1 giờ - dữ liệu ít thay đổi (model, phiên bản, v.v.)
     dynamic: 10000,     // 10 giây - dữ liệu thay đổi thường xuyên (traffic, CPU, RAM)
     onDemand: 0         // 0 = chỉ cập nhật khi có yêu cầu (logs, alerts, v.v.)
   };
-  
+
   // Dữ liệu và thời gian cập nhật lần cuối
   const dataLastUpdated: Record<string, Date> = {
     static: new Date(0),
@@ -175,7 +175,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Monitor traffic (dynamic data)
         const interfaceTraffic = await monitorAllInterfaceTraffic(conn);
         const trafficSummary = calculateTrafficSummary(interfaceTraffic);
-        
+
         broadcast({ type: 'interfaceTraffic', deviceId: device.id, data: interfaceTraffic });
         broadcast({ type: 'trafficSummary', deviceId: device.id, data: trafficSummary });
         dataLastUpdated.traffic = now;
@@ -187,7 +187,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           broadcast({ type: 'systemInfo', deviceId: device.id, data: systemData.systemInfo });
           broadcast({ type: 'storageInfo', deviceId: device.id, data: systemData.storageInfo });
           dataLastUpdated.system = now;
-          
+
           // Check for alerts
           checkForAlerts(device.id, interfaceTraffic, systemData.systemInfo);
         }
@@ -262,7 +262,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     for (const [ifaceName, traffic] of Object.entries(interfaceTraffic)) {
       const rxMbps = (traffic.rxBitsPerSecond || 0) / 1000000;
       const txMbps = (traffic.txBitsPerSecond || 0) / 1000000;
-      
+
       if (rxMbps > 90 || txMbps > 90) { // 90 Mbps threshold example
         highTrafficDetected = true;
         const alert = await storage.createAlert({
@@ -287,14 +287,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/status', (req, res) => {
     res.json({ status: 'ok', version: '1.0.0', connectedClients: clients.size });
   });
-  
+
   // Dashboard summary endpoint for all devices
   app.get('/api/dashboards', async (req, res) => {
     try {
       console.log("Fetching dashboards for all devices...");
       const devices = await storage.getDevices();
       console.log(`Found ${devices.length} devices:`, devices.map((d: Device) => ({ id: d.id, name: d.name })));
-      
+
       const dashboards = await Promise.all(devices.map(async (device: Device) => {
         try {
           // Create dashboard summary for all devices, even if offline
@@ -302,21 +302,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           // Connect to device
           const conn = await createConnection(device);
-          
+
           // Get system information
           const systemData = await getDetailedSystemInfo(conn);
-          
+
           // Get interfaces
           const interfaces = await getInterfaces(conn);
-          
+
           // Get alerts for this device
           const alerts = await storage.getAlerts(device.id);
           const unreadAlerts = alerts.filter((alert: Alert) => !alert.read);
-          
+
           // Calculate interface status
           const interfacesUp = interfaces.filter(iface => iface.running).length;
           const interfacesDown = interfaces.filter(iface => !iface.running).length;
-          
+
           // Return dashboard summary
           return {
             deviceId: device.id,
@@ -348,7 +348,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           };
         }
       }));
-      
+
       res.json(dashboards);
     } catch (error) {
       console.error('Error fetching dashboards:', error);
@@ -370,11 +370,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const deviceId = parseInt(req.params.id);
       const device = await storage.getDevice(deviceId);
-      
+
       if (!device) {
         return res.status(404).json({ error: 'Device not found' });
       }
-      
+
       res.json(device);
     } catch (error) {
       res.status(500).json({ error: 'Failed to fetch device' });
@@ -384,24 +384,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/devices', async (req, res) => {
     try {
       console.log("Received device data:", req.body);
-      
+
       // Đảm bảo dữ liệu port là số
       if (req.body.port && typeof req.body.port === 'string') {
         req.body.port = parseInt(req.body.port);
       }
-      
+
       const result = insertDeviceSchema.safeParse(req.body);
-      
+
       if (!result.success) {
         console.error("Schema validation failed:", result.error);
         return res.status(400).json({ error: 'Invalid device data', details: result.error });
       }
-      
+
       const device = await storage.createDevice(result.data);
-      
+
       // Start monitoring the device
       startMonitoringDevice(device);
-      
+
       res.status(201).json(device);
     } catch (error) {
       res.status(500).json({ error: 'Failed to create device' });
@@ -420,20 +420,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         model: z.string().optional(),
         version: z.string().optional(),
       }).safeParse(req.body);
-      
+
       if (!result.success) {
         return res.status(400).json({ error: 'Invalid device data', details: result.error });
       }
-      
+
       const updatedDevice = await storage.updateDevice(deviceId, result.data);
-      
+
       if (!updatedDevice) {
         return res.status(404).json({ error: 'Device not found' });
       }
-      
+
       // Restart monitoring with updated device info
       startMonitoringDevice(updatedDevice);
-      
+
       res.json(updatedDevice);
     } catch (error) {
       res.status(500).json({ error: 'Failed to update device' });
@@ -443,16 +443,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/devices/:id', async (req, res) => {
     try {
       const deviceId = parseInt(req.params.id);
-      
+
       // Stop monitoring the device
       stopMonitoringDevice(deviceId);
-      
+
       const success = await storage.deleteDevice(deviceId);
-      
+
       if (!success) {
         return res.status(404).json({ error: 'Device not found' });
       }
-      
+
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ error: 'Failed to delete device' });
@@ -464,20 +464,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const deviceId = parseInt(req.params.id);
       const device = await storage.getDevice(deviceId);
-      
+
       if (!device) {
         return res.status(404).json({ error: 'Device not found' });
       }
-      
+
       const conn = await createConnection(device);
       const interfaces = await getInterfaces(conn);
-      
+
       // Filter by type if requested
       const typeFilter = req.query.type as string;
       if (typeFilter) {
         return res.json(interfaces.filter(iface => iface.type === typeFilter));
       }
-      
+
       res.json(interfaces);
     } catch (error) {
       console.error('Error fetching interfaces:', error);
@@ -489,16 +489,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/devices/:id/traffic', async (req, res) => {
     try {
       const deviceId = parseInt(req.params.id);
-      const device = await mikrotikStorage.getDevice(deviceId);
-      
+      const device = await storage.getDevice(deviceId);
+
       if (!device) {
         return res.status(404).json({ error: 'Device not found' });
       }
-      
+
       const conn = await createConnection(device);
       const interfaces = await monitorAllInterfaceTraffic(conn);
       const summary = calculateTrafficSummary(interfaces);
-      
+
       res.json({ interfaces, summary });
     } catch (error) {
       console.error('Error fetching traffic:', error);
@@ -510,15 +510,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const deviceId = parseInt(req.params.id);
       const interfaceName = req.params.interface;
-      const device = await mikrotikStorage.getDevice(deviceId);
-      
+      const device = await storage.getDevice(deviceId);
+
       if (!device) {
         return res.status(404).json({ error: 'Device not found' });
       }
-      
+
       const conn = await createConnection(device);
       const traffic = await monitorInterfaceTraffic(conn, interfaceName);
-      
+
       res.json(traffic);
     } catch (error) {
       console.error('Error fetching interface traffic:', error);
@@ -530,15 +530,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/devices/:id/wifi/clients', async (req, res) => {
     try {
       const deviceId = parseInt(req.params.id);
-      const device = await mikrotikStorage.getDevice(deviceId);
-      
+      const device = await storage.getDevice(deviceId);
+
       if (!device) {
         return res.status(404).json({ error: 'Device not found' });
       }
-      
+
       const conn = await createConnection(device);
       const clients = await getWiFiClients(conn);
-      
+
       res.json(clients);
     } catch (error) {
       console.error('Error fetching WiFi clients:', error);
@@ -550,15 +550,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/devices/:id/system', async (req, res) => {
     try {
       const deviceId = parseInt(req.params.id);
-      const device = await mikrotikStorage.getDevice(deviceId);
-      
+      const device = await storage.getDevice(deviceId);
+
       if (!device) {
         return res.status(404).json({ error: 'Device not found' });
       }
-      
+
       const conn = await createConnection(device);
       const systemData = await getDetailedSystemInfo(conn);
-      
+
       res.json(systemData.systemInfo);
     } catch (error) {
       console.error('Error fetching system info:', error);
@@ -569,15 +569,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/devices/:id/system/storage', async (req, res) => {
     try {
       const deviceId = parseInt(req.params.id);
-      const device = await mikrotikStorage.getDevice(deviceId);
-      
+      const device = await storage.getDevice(deviceId);
+
       if (!device) {
         return res.status(404).json({ error: 'Device not found' });
       }
-      
+
       const conn = await createConnection(device);
       const systemData = await getDetailedSystemInfo(conn);
-      
+
       res.json(systemData.storageInfo);
     } catch (error) {
       console.error('Error fetching storage info:', error);
@@ -588,60 +588,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/devices/:id/system/files', async (req, res) => {
     try {
       const deviceId = parseInt(req.params.id);
-      const device = await mikrotikStorage.getDevice(deviceId);
-      
+      const device = await storage.getDevice(deviceId);
+
       if (!device) {
         return res.status(404).json({ error: 'Device not found' });
       }
-      
+
       const conn = await createConnection(device);
       const systemData = await getDetailedSystemInfo(conn);
-      
+
       res.json(systemData.fileList);
     } catch (error) {
       console.error('Error fetching files:', error);
       res.status(500).json({ error: 'Failed to fetch file list' });
     }
   });
-  
+
   // Device Logs
   app.get('/api/devices/:id/logs', async (req, res) => {
     try {
       const deviceId = parseInt(req.params.id);
-      const device = await mikrotikStorage.getDevice(deviceId);
-      
+      const device = await storage.getDevice(deviceId);
+
       if (!device) {
         return res.status(404).json({ error: 'Device not found' });
       }
-      
+
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 100;
       const topics = req.query.topics as string | undefined;
-      
+
       const conn = await createConnection(device);
-      
+
       let logs;
       if (topics) {
         logs = await getFilteredLogs(conn, topics, limit);
       } else {
         logs = await getLogs(conn, limit);
       }
-      
+
       res.json(logs);
     } catch (error) {
       console.error('Error fetching logs:', error);
       res.status(500).json({ error: 'Failed to fetch logs' });
     }
   });
-  
+
   // Helper function to fetch logs for a specific client via WebSocket
   async function fetchLogsForClient(deviceId: number, ws: WebSocket): Promise<void> {
     try {
       if (ws.readyState !== WebSocket.OPEN) {
         return;
       }
-      
-      const device = await mikrotikStorage.getDevice(deviceId);
-      
+
+      const device = await storage.getDevice(deviceId);
+
       if (!device) {
         ws.send(JSON.stringify({ 
           type: 'error', 
@@ -650,10 +650,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }));
         return;
       }
-      
+
       const conn = await createConnection(device);
       const logs = await getLogs(conn, 100);
-      
+
       ws.send(JSON.stringify({ 
         type: 'logs', 
         deviceId,
@@ -675,20 +675,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/devices/:id/firewall', async (req, res) => {
     try {
       const deviceId = parseInt(req.params.id);
-      const device = await mikrotikStorage.getDevice(deviceId);
-      
+      const device = await storage.getDevice(deviceId);
+
       if (!device) {
         return res.status(404).json({ error: 'Device not found' });
       }
 
       const conn = await createConnection(device);
-      
+
       // Lấy firewall filter rules
       const filterRules = await executeCommand(conn, '/ip/firewall/filter/print', []);
-      
+
       // Lấy firewall NAT rules
       const natRules = await executeCommand(conn, '/ip/firewall/nat/print', []);
-      
+
       // Lấy address lists
       let addressLists = [];
       try {
@@ -696,7 +696,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (error) {
         console.log('Error fetching address lists:', error);
       }
-      
+
       res.json({
         filterRules,
         natRules,
@@ -707,28 +707,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: 'Failed to fetch firewall rules' });
     }
   });
-  
+
   // Lấy thông tin về DHCP
   app.get('/api/devices/:id/dhcp', async (req, res) => {
     try {
       const deviceId = parseInt(req.params.id);
-      const device = await mikrotikStorage.getDevice(deviceId);
-      
+      const device = await storage.getDevice(deviceId);
+
       if (!device) {
         return res.status(404).json({ error: 'Device not found' });
       }
 
       const conn = await createConnection(device);
-      
+
       // Lấy DHCP servers
       const servers = await executeCommand(conn, '/ip/dhcp-server/print', []);
-      
+
       // Lấy DHCP leases
       const leases = await executeCommand(conn, '/ip/dhcp-server/lease/print', []);
-      
+
       // Lấy DHCP networks
       const networks = await executeCommand(conn, '/ip/dhcp-server/network/print', []);
-      
+
       res.json({
         servers,
         leases,
@@ -739,38 +739,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: 'Failed to fetch DHCP info' });
     }
   });
-  
+
   // Lấy thông tin về định tuyến
   app.get('/api/devices/:id/routing', async (req, res) => {
     try {
       const deviceId = parseInt(req.params.id);
-      const device = await mikrotikStorage.getDevice(deviceId);
-      
+      const device = await storage.getDevice(deviceId);
+
       if (!device) {
         return res.status(404).json({ error: 'Device not found' });
       }
 
       const conn = await createConnection(device);
-      
+
       // Lấy routing tables
       const routes = await executeCommand(conn, '/ip/route/print', []);
-      
+
       // Lấy thông tin giao thức định tuyến
       let bgp = [];
       let ospf = [];
-      
+
       try {
         bgp = await executeCommand(conn, '/routing/bgp/peer/print', []);
       } catch (error) {
         console.log('BGP may not be configured or supported');
       }
-      
+
       try {
         ospf = await executeCommand(conn, '/routing/ospf/neighbor/print', []);
       } catch (error) {
         console.log('OSPF may not be configured or supported');
       }
-      
+
       res.json({
         routes,
         bgp,
@@ -781,25 +781,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: 'Failed to fetch routing info' });
     }
   });
-  
+
   // Lấy thông tin WiFi chi tiết
   app.get('/api/devices/:id/wifi/details', async (req, res) => {
     try {
       const deviceId = parseInt(req.params.id);
-      const device = await mikrotikStorage.getDevice(deviceId);
-      
+      const device = await storage.getDevice(deviceId);
+
       if (!device) {
         return res.status(404).json({ error: 'Device not found' });
       }
 
       const conn = await createConnection(device);
-      
+
       // Lấy thông tin giao diện WiFi
       const interfaces = await executeCommand(conn, '/interface/wireless/print', []);
-      
+
       // Lấy thông tin clients kết nối WiFi
       const clients = await executeCommand(conn, '/interface/wireless/registration-table/print', []);
-      
+
       // Lấy thông tin Access List
       let accessList = [];
       try {
@@ -807,7 +807,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (error) {
         console.log('Wireless access list may not be configured');
       }
-      
+
       res.json({
         interfaces,
         clients,
@@ -823,19 +823,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/devices/:id/alerts', async (req, res) => {
     try {
       const deviceId = parseInt(req.params.id);
-      const device = await mikrotikStorage.getDevice(deviceId);
-      
+      const device = await storage.getDevice(deviceId);
+
       if (!device) {
         return res.status(404).json({ error: 'Device not found' });
       }
-      
-      const alerts = await mikrotikStorage.getAlerts(deviceId);
-      
+
+      const alerts = await storage.getAlerts(deviceId);
+
       // Sort by timestamp (newest first)
       alerts.sort((a, b) => 
         new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
       );
-      
+
       res.json(alerts);
     } catch (error) {
       res.status(500).json({ error: 'Failed to fetch alerts' });
@@ -845,26 +845,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/devices/:id/alerts', async (req, res) => {
     try {
       const deviceId = parseInt(req.params.id);
-      const device = await mikrotikStorage.getDevice(deviceId);
-      
+      const device = await storage.getDevice(deviceId);
+
       if (!device) {
         return res.status(404).json({ error: 'Device not found' });
       }
-      
+
       const result = insertAlertSchema.safeParse({
         ...req.body,
         deviceId,
       });
-      
+
       if (!result.success) {
         return res.status(400).json({ error: 'Invalid alert data', details: result.error });
       }
-      
-      const alert = await mikrotikStorage.createAlert(result.data);
-      
+
+      const alert = await storage.createAlert(result.data);
+
       // Broadcast the new alert to all clients
       broadcast({ type: 'newAlert', data: alert });
-      
+
       res.status(201).json(alert);
     } catch (error) {
       res.status(500).json({ error: 'Failed to create alert' });
@@ -877,17 +877,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const result = z.object({
         read: z.boolean().optional(),
       }).safeParse(req.body);
-      
+
       if (!result.success) {
         return res.status(400).json({ error: 'Invalid alert data', details: result.error });
       }
-      
-      const updatedAlert = await mikrotikStorage.updateAlert(alertId, result.data);
-      
+
+      const updatedAlert = await storage.updateAlert(alertId, result.data);
+
       if (!updatedAlert) {
         return res.status(404).json({ error: 'Alert not found' });
       }
-      
+
       res.json(updatedAlert);
     } catch (error) {
       res.status(500).json({ error: 'Failed to update alert' });
@@ -897,14 +897,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/devices/:id/alerts/mark-all-read', async (req, res) => {
     try {
       const deviceId = parseInt(req.params.id);
-      const device = await mikrotikStorage.getDevice(deviceId);
-      
+      const device = await storage.getDevice(deviceId);
+
       if (!device) {
         return res.status(404).json({ error: 'Device not found' });
       }
-      
-      await mikrotikStorage.markAllAlertsAsRead(deviceId);
-      
+
+      await storage.markAllAlertsAsRead(deviceId);
+
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ error: 'Failed to mark alerts as read' });
@@ -914,7 +914,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth endpoints (simplified for this implementation)
   app.post('/api/auth/login', (req, res) => {
     const { username, password } = req.body;
-    
+
     if (username === 'admin' && password === 'password') {
       res.json({ success: true, user: { id: 1, username: 'admin' } });
     } else {
