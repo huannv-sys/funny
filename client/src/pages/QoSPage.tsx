@@ -39,7 +39,7 @@ interface QueueTree {
   id: string;
   name: string;
   parent: string;
-  packet-mark?: string;
+  "packet-mark"?: string;
   limit: string;
   maxLimit: string;
   burstLimit?: string;
@@ -139,7 +139,7 @@ export default function QoSPage() {
   const simpleQueuesQuery = useQuery({
     queryKey: ['/api/devices', deviceId, 'queues', 'simple'],
     queryFn: getQueryFn<SimpleQueue[]>({ on401: 'throw' }),
-    staleTime: staleTime: 15000,
+    staleTime: 15000,
     refetchInterval: 30000,
     placeholderData: [],
   });
@@ -148,7 +148,7 @@ export default function QoSPage() {
   const queueTreesQuery = useQuery({
     queryKey: ['/api/devices', deviceId, 'queues', 'tree'],
     queryFn: getQueryFn<QueueTree[]>({ on401: 'throw' }),
-    staleTime: staleTime: 15000,
+    staleTime: 15000,
     refetchInterval: 30000,
     placeholderData: [],
   });
@@ -157,7 +157,7 @@ export default function QoSPage() {
   const queueTypesQuery = useQuery({
     queryKey: ['/api/devices', deviceId, 'queues', 'types'],
     queryFn: getQueryFn<QueueType[]>({ on401: 'throw' }),
-    staleTime: staleTime: 60000,
+    staleTime: 60000,
     refetchInterval: 120000,
     placeholderData: [],
   });
@@ -166,7 +166,7 @@ export default function QoSPage() {
   const mangleRulesQuery = useQuery({
     queryKey: ['/api/devices', deviceId, 'firewall', 'mangle'],
     queryFn: getQueryFn<MangleRule[]>({ on401: 'throw' }),
-    staleTime: staleTime: 30000,
+    staleTime: 30000,
     refetchInterval: 60000,
     placeholderData: [],
   });
