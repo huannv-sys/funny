@@ -17,7 +17,7 @@ export default function Sidebar({ onClose }: SidebarProps) {
   const { alerts } = useContext(AlertsContext);
   
   // Kiểm tra trạng thái thu gọn của sidebar từ localStorage
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
   
   // Lấy trạng thái thu gọn từ localStorage khi sidebar được tạo
   useEffect(() => {
@@ -25,6 +25,9 @@ export default function Sidebar({ onClose }: SidebarProps) {
     if (savedState) {
       const isCollapsedState = JSON.parse(savedState);
       setIsCollapsed(isCollapsedState);
+    } else {
+      // Nếu chưa có trạng thái trong localStorage, mặc định là thu gọn
+      localStorage.setItem("sidebar_collapsed", "true");
     }
   }, []);
   

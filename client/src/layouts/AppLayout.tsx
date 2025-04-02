@@ -11,11 +11,11 @@ interface AppLayoutProps extends PropsWithChildren {
 const SIDEBAR_STATE_KEY = "sidebar_collapsed";
 
 export default function AppLayout({ children, showSidebar = true }: AppLayoutProps) {
-  // Giá trị mặc định là sidebar hiển thị (false = không thu gọn)
+  // Giá trị mặc định là sidebar thu gọn (true = thu gọn)
   const [isCollapsed, setIsCollapsed] = useState(() => {
     // Kiểm tra localStorage khi component được khởi tạo
     const savedState = localStorage.getItem(SIDEBAR_STATE_KEY);
-    return savedState ? JSON.parse(savedState) : false;
+    return savedState ? JSON.parse(savedState) : true;
   });
   
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
