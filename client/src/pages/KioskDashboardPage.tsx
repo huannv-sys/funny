@@ -23,44 +23,44 @@ function KioskDashboardContent() {
   const [fullscreenMode, setFullscreenMode] = useState(false);
 
   // Generate a random position for a new window
-  const getRandomPosition = () => {
+  const getRandomPosition = useCallback(() => {
     const maxX = window.innerWidth - 400; // Window width
     const maxY = window.innerHeight - 300; // Window height
     return {
       x: Math.max(0, Math.floor(Math.random() * maxX)),
       y: Math.max(0, Math.floor(Math.random() * maxY)),
     };
-  };
+  }, []);
 
   // Add a window for the specified device
   const addWindow = useCallback((device: MikrotikDevice) => {
     // Check if window already exists for this device
-    const existingWindow = monitorWindows.find(w => w.deviceId === device.id);
-    if (existingWindow) {
-      // If minimized, just un-minimize it
-      if (existingWindow.minimized) {
-        setMonitorWindows(windows => 
-          windows.map(w => 
+    setMonitorWindows(currentWindows => {
+      const existingWindow = currentWindows.find(w => w.deviceId === device.id);
+      if (existingWindow) {
+        // If minimized, just un-minimize it
+        if (existingWindow.minimized) {
+          return currentWindows.map(w => 
             w.id === existingWindow.id ? { ...w, minimized: false } : w
-          )
-        );
+          );
+        }
+        // Window exists and is not minimized, no change needed
+        return currentWindows;
       }
-      // Focus the window by bringing it to front (reordering not implemented yet)
-      return;
-    }
 
-    // Add new window
-    const position = getRandomPosition();
-    const newWindow: MonitorWindow = {
-      id: `window-${device.id}-${Date.now()}`,
-      deviceId: device.id,
-      position,
-      size: { width: 400, height: 600 },
-      minimized: false,
-    };
-    
-    setMonitorWindows(windows => [...windows, newWindow]);
-  }, [monitorWindows]);
+      // Add new window
+      const position = getRandomPosition();
+      const newWindow: MonitorWindow = {
+        id: `window-${device.id}-${Date.now()}`,
+        deviceId: device.id,
+        position,
+        size: { width: 400, height: 600 },
+        minimized: false,
+      };
+      
+      return [...currentWindows, newWindow];
+    });
+  }, [getRandomPosition]);
 
   // Add windows for all selected devices
   const addAllSelectedWindows = useCallback(() => {
