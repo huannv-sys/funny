@@ -15,19 +15,22 @@ interface FirewallRule {
   id: string;
   chain: string;
   action: string;
-  protocol: string;
+  protocol?: string;
   srcAddress?: string;
   srcPort?: string;
   dstAddress?: string;
   dstPort?: string;
+  inInterface?: string;
+  outInterface?: string;
   comment?: string;
-  packets: number;
+  connectionState?: string;
   bytes: number;
+  packets: number;
   disabled: boolean;
 }
 
 // Định nghĩa kiểu dữ liệu cho NAT Rule
-interface NatRule {
+interface NATRule {
   id: string;
   chain: string;
   action: string;
@@ -39,21 +42,26 @@ interface NatRule {
   toAddresses?: string;
   toPorts?: string;
   comment?: string;
+  bytes: number;
+  packets: number;
   disabled: boolean;
 }
 
 // Định nghĩa kiểu dữ liệu cho Connection
 interface Connection {
   id: string;
-  protocol: string;
+  protocol: 'tcp' | 'udp' | 'icmp';
   srcAddress: string;
-  srcPort: string;
+  srcPort: number;
   dstAddress: string;
-  dstPort: string;
+  dstPort: number;
   state: string;
-  timeout: string;
+  timeout: number;
   bytesIn: number;
   bytesOut: number;
+  tcpStateTracking?: string;
+  natted?: boolean;
+  marked?: boolean;
 }
 
 // Hàm để định dạng bytes thành dạng dễ đọc
@@ -64,72 +72,32 @@ function formatBytes(bytes: number) {
   return (bytes / Math.pow(1024, i)).toFixed(2) + ' ' + sizes[i];
 }
 
-// Hàm tạo badge cho action
-function getActionBadge(action: string) {
-  switch (action.toLowerCase()) {
-    case 'accept':
-      return <Badge className="bg-green-500">Chấp nhận</Badge>;
-    case 'drop':
-      return <Badge className="bg-red-500">Từ chối</Badge>;
-    case 'reject':
-      return <Badge className="bg-orange-500">Từ chối</Badge>;
-    case 'log':
-      return <Badge className="bg-blue-500">Ghi log</Badge>;
-    case 'masquerade':
-      return <Badge className="bg-purple-500">Masquerade</Badge>;
-    case 'dst-nat':
-      return <Badge className="bg-indigo-500">Destination NAT</Badge>;
-    case 'src-nat':
-      return <Badge className="bg-pink-500">Source NAT</Badge>;
-    default:
-      return <Badge className="bg-gray-500">{action}</Badge>;
-  }
-}
-
-// Hàm tạo màu cho trạng thái kết nối
-function getConnectionStateBadge(state: string) {
-  switch (state.toLowerCase()) {
-    case 'established':
-      return <Badge className="bg-green-500">Established</Badge>;
-    case 'time-wait':
-      return <Badge className="bg-yellow-500">Time-wait</Badge>;
-    case 'fin-wait':
-      return <Badge className="bg-orange-500">Fin-wait</Badge>;
-    case 'close-wait':
-      return <Badge className="bg-red-500">Close-wait</Badge>;
-    case 'syn-sent':
-      return <Badge className="bg-blue-500">Syn-sent</Badge>;
-    default:
-      return <Badge className="bg-gray-500">{state}</Badge>;
-  }
-}
-
 export default function FirewallPage() {
-  const [deviceId] = useState<number>(1); // Giả sử hiện tại chúng ta đang sử dụng thiết bị có ID là 1
-  const [activeTab, setActiveTab] = useState("filter");
+  const [deviceId] = useState<number>(1);
+  const [activeTab, setActiveTab] = useState("filter-rules");
 
-  // Fetch dữ liệu firewall rules
-  const firewallQuery = useQuery({
+  // Fetch dữ liệu Filter Rules
+  const filterRulesQuery = useQuery({
     queryKey: ['/api/devices', deviceId, 'firewall', 'filter'],
     queryFn: getQueryFn<FirewallRule[]>({ on401: 'throw' }),
-    staleTime: 30000, // 30 seconds
-    refetchInterval: 60000, // 1 minute
-  });
-
-  // Fetch dữ liệu NAT rules
-  const natQuery = useQuery({
-    queryKey: ['/api/devices', deviceId, 'firewall', 'nat'],
-    queryFn: getQueryFn<NatRule[]>({ on401: 'throw' }),
     staleTime: 30000,
     refetchInterval: 60000,
   });
 
-  // Fetch dữ liệu connections
+  // Fetch dữ liệu NAT Rules
+  const natRulesQuery = useQuery({
+    queryKey: ['/api/devices', deviceId, 'firewall', 'nat'],
+    queryFn: getQueryFn<NATRule[]>({ on401: 'throw' }),
+    staleTime: 30000,
+    refetchInterval: 60000,
+  });
+
+  // Fetch dữ liệu Connections
   const connectionsQuery = useQuery({
-    queryKey: ['/api/devices', deviceId, 'connections'],
+    queryKey: ['/api/devices', deviceId, 'firewall', 'connections'],
     queryFn: getQueryFn<Connection[]>({ on401: 'throw' }),
-    staleTime: 10000, // 10 seconds
-    refetchInterval: 20000, // 20 seconds
+    staleTime: 15000,
+    refetchInterval: 30000,
   });
 
   // Tạo loading fallback component
@@ -151,32 +119,108 @@ export default function FirewallPage() {
     </Alert>
   );
 
+  // Tạo badge cho chain
+  function getChainBadge(chain: string) {
+    switch(chain.toLowerCase()) {
+      case 'input':
+        return <Badge className="bg-blue-500">Input</Badge>;
+      case 'output':
+        return <Badge className="bg-green-500">Output</Badge>;
+      case 'forward':
+        return <Badge className="bg-purple-500">Forward</Badge>;
+      case 'srcnat':
+        return <Badge className="bg-orange-500">Source NAT</Badge>;
+      case 'dstnat':
+        return <Badge className="bg-pink-500">Destination NAT</Badge>;
+      default:
+        return <Badge className="bg-gray-500">{chain}</Badge>;
+    }
+  }
+
+  // Tạo badge cho action
+  function getActionBadge(action: string) {
+    switch(action.toLowerCase()) {
+      case 'accept':
+        return <Badge className="bg-green-500">Accept</Badge>;
+      case 'drop':
+        return <Badge className="bg-red-500">Drop</Badge>;
+      case 'reject':
+        return <Badge className="bg-orange-500">Reject</Badge>;
+      case 'masquerade':
+        return <Badge className="bg-blue-500">Masquerade</Badge>;
+      case 'dst-nat':
+      case 'dstnat':
+        return <Badge className="bg-purple-500">Dst-NAT</Badge>;
+      case 'src-nat':
+      case 'srcnat':
+        return <Badge className="bg-yellow-500">Src-NAT</Badge>;
+      case 'log':
+        return <Badge className="bg-gray-500">Log</Badge>;
+      default:
+        return <Badge className="bg-gray-500">{action}</Badge>;
+    }
+  }
+
+  // Tạo badge cho protocol
+  function getProtocolBadge(protocol?: string) {
+    if (!protocol) return '-';
+    
+    switch(protocol.toLowerCase()) {
+      case 'tcp':
+        return <Badge className="bg-blue-500">TCP</Badge>;
+      case 'udp':
+        return <Badge className="bg-green-500">UDP</Badge>;
+      case 'icmp':
+        return <Badge className="bg-yellow-500">ICMP</Badge>;
+      default:
+        return <Badge className="bg-gray-500">{protocol}</Badge>;
+    }
+  }
+
+  // Tạo badge cho connection state
+  function getStateBadge(state: string) {
+    switch(state.toLowerCase()) {
+      case 'established':
+        return <Badge className="bg-green-500">Established</Badge>;
+      case 'time-wait':
+        return <Badge className="bg-blue-500">Time-Wait</Badge>;
+      case 'fin-wait':
+        return <Badge className="bg-orange-500">Fin-Wait</Badge>;
+      case 'close-wait':
+        return <Badge className="bg-yellow-500">Close-Wait</Badge>;
+      case 'closed':
+        return <Badge className="bg-red-500">Closed</Badge>;
+      default:
+        return <Badge className="bg-gray-500">{state}</Badge>;
+    }
+  }
+
   return (
     <AppLayout>
       <div className="container mx-auto py-6">
         <h1 className="text-2xl font-bold mb-6">Quản lý Firewall & NAT</h1>
         
-        <Tabs defaultValue="filter" value={activeTab} onValueChange={setActiveTab}>
+        <Tabs defaultValue="filter-rules" value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="filter">Firewall Rules</TabsTrigger>
-            <TabsTrigger value="nat">NAT Rules</TabsTrigger>
-            <TabsTrigger value="connections">Kết nối đang hoạt động</TabsTrigger>
+            <TabsTrigger value="filter-rules">Filter Rules</TabsTrigger>
+            <TabsTrigger value="nat-rules">NAT Rules</TabsTrigger>
+            <TabsTrigger value="connections">Connections</TabsTrigger>
           </TabsList>
           
-          {/* FIREWALL RULES TAB */}
-          <TabsContent value="filter">
+          {/* FILTER RULES TAB */}
+          <TabsContent value="filter-rules">
             <Card>
               <CardHeader>
-                <CardTitle>Firewall Rules</CardTitle>
+                <CardTitle>Filter Rules</CardTitle>
                 <CardDescription>
-                  Danh sách các quy tắc tường lửa và thống kê lưu lượng
+                  Danh sách các quy tắc lọc gói tin trong tường lửa
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {firewallQuery.isLoading ? (
+                {filterRulesQuery.isLoading ? (
                   <LoadingFallback />
-                ) : firewallQuery.isError ? (
-                  <ErrorDisplay message={(firewallQuery.error as Error).message} />
+                ) : filterRulesQuery.isError ? (
+                  <ErrorDisplay message={(filterRulesQuery.error as Error).message} />
                 ) : (
                   <div className="overflow-x-auto">
                     <Table>
@@ -187,17 +231,18 @@ export default function FirewallPage() {
                           <TableHead>Protocol</TableHead>
                           <TableHead>Source</TableHead>
                           <TableHead>Destination</TableHead>
-                          <TableHead>Packets</TableHead>
-                          <TableHead>Traffic</TableHead>
-                          <TableHead>Trạng thái</TableHead>
+                          <TableHead>Interface</TableHead>
+                          <TableHead>State</TableHead>
+                          <TableHead>Packets/Bytes</TableHead>
+                          <TableHead>Comment</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {firewallQuery.data?.map((rule) => (
-                          <TableRow key={rule.id}>
-                            <TableCell>{rule.chain}</TableCell>
+                        {filterRulesQuery.data?.map((rule) => (
+                          <TableRow key={rule.id} className={rule.disabled ? "opacity-50" : ""}>
+                            <TableCell>{getChainBadge(rule.chain)}</TableCell>
                             <TableCell>{getActionBadge(rule.action)}</TableCell>
-                            <TableCell>{rule.protocol || 'all'}</TableCell>
+                            <TableCell>{getProtocolBadge(rule.protocol)}</TableCell>
                             <TableCell>
                               {rule.srcAddress || 'any'}
                               {rule.srcPort ? ':' + rule.srcPort : ''}
@@ -206,21 +251,23 @@ export default function FirewallPage() {
                               {rule.dstAddress || 'any'}
                               {rule.dstPort ? ':' + rule.dstPort : ''}
                             </TableCell>
-                            <TableCell>{rule.packets.toLocaleString()}</TableCell>
-                            <TableCell>{formatBytes(rule.bytes)}</TableCell>
                             <TableCell>
-                              {rule.disabled ? (
-                                <Badge variant="outline" className="text-gray-400">Tắt</Badge>
-                              ) : (
-                                <Badge variant="outline" className="text-green-500">Bật</Badge>
-                              )}
+                              {rule.inInterface ? 'in: ' + rule.inInterface : ''}
+                              {rule.inInterface && rule.outInterface ? ', ' : ''}
+                              {rule.outInterface ? 'out: ' + rule.outInterface : ''}
+                              {!rule.inInterface && !rule.outInterface ? 'any' : ''}
                             </TableCell>
+                            <TableCell>{rule.connectionState || '-'}</TableCell>
+                            <TableCell>
+                              {rule.packets.toLocaleString()} / {formatBytes(rule.bytes)}
+                            </TableCell>
+                            <TableCell>{rule.comment || '-'}</TableCell>
                           </TableRow>
                         ))}
-                        {(firewallQuery.data?.length === 0) && (
+                        {(filterRulesQuery.data?.length === 0) && (
                           <TableRow>
-                            <TableCell colSpan={8} className="text-center py-4 text-gray-500">
-                              Không có quy tắc tường lửa nào
+                            <TableCell colSpan={9} className="text-center py-4 text-gray-500">
+                              Không có filter rule nào
                             </TableCell>
                           </TableRow>
                         )}
@@ -233,19 +280,19 @@ export default function FirewallPage() {
           </TabsContent>
           
           {/* NAT RULES TAB */}
-          <TabsContent value="nat">
+          <TabsContent value="nat-rules">
             <Card>
               <CardHeader>
                 <CardTitle>NAT Rules</CardTitle>
                 <CardDescription>
-                  Cấu hình Port Forwarding và Network Address Translation
+                  Danh sách các quy tắc Network Address Translation (NAT)
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {natQuery.isLoading ? (
+                {natRulesQuery.isLoading ? (
                   <LoadingFallback />
-                ) : natQuery.isError ? (
-                  <ErrorDisplay message={(natQuery.error as Error).message} />
+                ) : natRulesQuery.isError ? (
+                  <ErrorDisplay message={(natRulesQuery.error as Error).message} />
                 ) : (
                   <div className="overflow-x-auto">
                     <Table>
@@ -258,15 +305,16 @@ export default function FirewallPage() {
                           <TableHead>Destination</TableHead>
                           <TableHead>To Addresses</TableHead>
                           <TableHead>To Ports</TableHead>
-                          <TableHead>Trạng thái</TableHead>
+                          <TableHead>Packets/Bytes</TableHead>
+                          <TableHead>Comment</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {natQuery.data?.map((rule) => (
-                          <TableRow key={rule.id}>
-                            <TableCell>{rule.chain}</TableCell>
+                        {natRulesQuery.data?.map((rule) => (
+                          <TableRow key={rule.id} className={rule.disabled ? "opacity-50" : ""}>
+                            <TableCell>{getChainBadge(rule.chain)}</TableCell>
                             <TableCell>{getActionBadge(rule.action)}</TableCell>
-                            <TableCell>{rule.protocol || 'all'}</TableCell>
+                            <TableCell>{getProtocolBadge(rule.protocol)}</TableCell>
                             <TableCell>
                               {rule.srcAddress || 'any'}
                               {rule.srcPort ? ':' + rule.srcPort : ''}
@@ -278,18 +326,15 @@ export default function FirewallPage() {
                             <TableCell>{rule.toAddresses || '-'}</TableCell>
                             <TableCell>{rule.toPorts || '-'}</TableCell>
                             <TableCell>
-                              {rule.disabled ? (
-                                <Badge variant="outline" className="text-gray-400">Tắt</Badge>
-                              ) : (
-                                <Badge variant="outline" className="text-green-500">Bật</Badge>
-                              )}
+                              {rule.packets.toLocaleString()} / {formatBytes(rule.bytes)}
                             </TableCell>
+                            <TableCell>{rule.comment || '-'}</TableCell>
                           </TableRow>
                         ))}
-                        {(natQuery.data?.length === 0) && (
+                        {(natRulesQuery.data?.length === 0) && (
                           <TableRow>
-                            <TableCell colSpan={8} className="text-center py-4 text-gray-500">
-                              Không có quy tắc NAT nào
+                            <TableCell colSpan={9} className="text-center py-4 text-gray-500">
+                              Không có NAT rule nào
                             </TableCell>
                           </TableRow>
                         )}
@@ -305,7 +350,7 @@ export default function FirewallPage() {
           <TabsContent value="connections">
             <Card>
               <CardHeader>
-                <CardTitle>Connections Tracking</CardTitle>
+                <CardTitle>Active Connections</CardTitle>
                 <CardDescription>
                   Danh sách các kết nối mạng đang hoạt động
                 </CardDescription>
@@ -325,29 +370,41 @@ export default function FirewallPage() {
                           <TableHead>Destination</TableHead>
                           <TableHead>State</TableHead>
                           <TableHead>Timeout</TableHead>
-                          <TableHead>Traffic In</TableHead>
-                          <TableHead>Traffic Out</TableHead>
+                          <TableHead>Bytes (In/Out)</TableHead>
+                          <TableHead>NAT</TableHead>
+                          <TableHead>Mark</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {connectionsQuery.data?.map((conn) => (
                           <TableRow key={conn.id}>
-                            <TableCell>{conn.protocol.toUpperCase()}</TableCell>
+                            <TableCell>{getProtocolBadge(conn.protocol)}</TableCell>
+                            <TableCell>{conn.srcAddress}:{conn.srcPort}</TableCell>
+                            <TableCell>{conn.dstAddress}:{conn.dstPort}</TableCell>
+                            <TableCell>{getStateBadge(conn.state)}</TableCell>
+                            <TableCell>{conn.timeout}s</TableCell>
                             <TableCell>
-                              {conn.srcAddress}:{conn.srcPort}
+                              {formatBytes(conn.bytesIn)} / {formatBytes(conn.bytesOut)}
                             </TableCell>
                             <TableCell>
-                              {conn.dstAddress}:{conn.dstPort}
+                              {conn.natted ? (
+                                <Badge className="bg-green-500">Yes</Badge>
+                              ) : (
+                                <Badge variant="outline" className="text-gray-400">No</Badge>
+                              )}
                             </TableCell>
-                            <TableCell>{getConnectionStateBadge(conn.state)}</TableCell>
-                            <TableCell>{conn.timeout}</TableCell>
-                            <TableCell>{formatBytes(conn.bytesIn)}</TableCell>
-                            <TableCell>{formatBytes(conn.bytesOut)}</TableCell>
+                            <TableCell>
+                              {conn.marked ? (
+                                <Badge className="bg-blue-500">Yes</Badge>
+                              ) : (
+                                <Badge variant="outline" className="text-gray-400">No</Badge>
+                              )}
+                            </TableCell>
                           </TableRow>
                         ))}
                         {(connectionsQuery.data?.length === 0) && (
                           <TableRow>
-                            <TableCell colSpan={7} className="text-center py-4 text-gray-500">
+                            <TableCell colSpan={8} className="text-center py-4 text-gray-500">
                               Không có kết nối nào đang hoạt động
                             </TableCell>
                           </TableRow>

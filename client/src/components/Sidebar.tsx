@@ -41,6 +41,9 @@ export default function Sidebar({ onClose }: SidebarProps) {
     { href: "/services", icon: "cogs", label: "Services & Users" },
   ];
 
+  // Để tương thích với mã hiện tại, tạo một bản sao của dashboardItems
+  const navigationItems = [...dashboardItems];
+  
   const handleNavClick = () => {
     if (onClose) onClose();
   };
