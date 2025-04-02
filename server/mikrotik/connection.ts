@@ -186,8 +186,8 @@ export async function createConnection(device: Device): Promise<RouterOSAPI> {
   }
 
   // Check if we should use mock data
-  // Sử dụng dữ liệu giả lập chỉ cho thiết bị có ID = 1
-  if (USE_MOCK_DATA || device.id === 1) {
+  // Sử dụng dữ liệu giả lập chỉ khi USE_MOCK_DATA = true
+  if (USE_MOCK_DATA) {
     console.log(`[MOCK] Creating mock connection for device ${device.id} (${device.name})`);
     const mockConn = new MockRouterOSAPI(device.id, device.name);
     connectionCache.set(device.id, mockConn as unknown as RouterOSAPI);

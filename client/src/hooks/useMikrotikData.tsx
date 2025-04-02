@@ -279,6 +279,12 @@ export function TrafficProvider({ children }: { children: ReactNode }) {
     const messageHandler = (event: MessageEvent) => {
       try {
         const data = JSON.parse(event.data);
+        
+        // Chỉ xử lý dữ liệu từ thiết bị đã chọn
+        if (data.deviceId && data.deviceId !== selectedDevice.id) {
+          return;
+        }
+        
         if (data.type === 'interfaceTraffic') {
           setInterfaceTraffic(data.data);
         } else if (data.type === 'trafficSummary') {
@@ -395,6 +401,12 @@ export function WiFiProvider({ children }: { children: ReactNode }) {
     const messageHandler = (event: MessageEvent) => {
       try {
         const data = JSON.parse(event.data);
+        
+        // Chỉ xử lý dữ liệu từ thiết bị đã chọn
+        if (data.deviceId && data.deviceId !== selectedDevice.id) {
+          return;
+        }
+        
         if (data.type === 'wifiClients') {
           setWifiClients(data.data);
         }
@@ -480,6 +492,12 @@ export function SystemProvider({ children }: { children: ReactNode }) {
     const messageHandler = (event: MessageEvent) => {
       try {
         const data = JSON.parse(event.data);
+        
+        // Chỉ xử lý dữ liệu từ thiết bị đã chọn
+        if (data.deviceId && data.deviceId !== selectedDevice.id) {
+          return;
+        }
+        
         if (data.type === 'systemInfo') {
           setSystemInfo(data.data);
         } else if (data.type === 'storageInfo') {
@@ -592,6 +610,12 @@ export function AlertsProvider({ children }: { children: ReactNode }) {
     const messageHandler = (event: MessageEvent) => {
       try {
         const data = JSON.parse(event.data);
+        
+        // Chỉ xử lý dữ liệu từ thiết bị đã chọn
+        if (data.deviceId && data.deviceId !== selectedDevice.id) {
+          return;
+        }
+        
         if (data.type === 'newAlert') {
           setAlerts(prev => [data.data, ...prev]);
           
