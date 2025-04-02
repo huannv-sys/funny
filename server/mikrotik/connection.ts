@@ -186,8 +186,8 @@ export async function createConnection(device: Device): Promise<RouterOSAPI> {
   }
 
   // Check if we should use mock data
-  // Sử dụng dữ liệu giả lập chỉ khi USE_MOCK_DATA = true
-  if (USE_MOCK_DATA) {
+  // Sử dụng dữ liệu giả lập khi USE_MOCK_DATA = true hoặc thiết bị có id = 1
+  if (USE_MOCK_DATA || device.id === 1) {
     console.log(`[MOCK] Creating mock connection for device ${device.id} (${device.name})`);
     const mockConn = new MockRouterOSAPI(device.id, device.name);
     connectionCache.set(device.id, mockConn as unknown as RouterOSAPI);
@@ -200,7 +200,7 @@ export async function createConnection(device: Device): Promise<RouterOSAPI> {
     user: device.username,
     password: device.password,
     port: device.port || 8728,
-    timeout: 5000,
+    timeout: 15000, // Tăng timeout lên 15 giây để giảm thiểu lỗi kết nối
   });
 
   try {
